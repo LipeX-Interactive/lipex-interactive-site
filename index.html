@@ -1,178 +1,296 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="LipeX Interactive — jogos interativos para TikTok LIVE com licenciamento seguro, conta LipeX e pagamento online.">
-  <title>LipeX Interactive</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="LipeX Interactive Games — jogos interativos para TikTok LIVE com launcher próprio, comunidade para streamers e ativação automática." name="description"/>
+<title>LipeX Interactive Games</title>
+<link href="styles.css" rel="stylesheet"/>
 </head>
-<body>
-  <div class="payment-banner" id="payment-banner" hidden></div>
-
-  <header class="topbar">
-    <a class="brand" href="#inicio">
-      <span class="brand-mark">LX</span>
-      <span><strong>LipeX Interactive</strong><small>Jogos interativos para LIVE</small></span>
-    </a>
-    <div class="topbar-right">
-      <nav class="nav">
-        <a href="#jogos">Jogos</a>
-        <a href="#como-funciona">Como funciona</a>
-        <a href="#faq">FAQ</a>
-        <a href="termos.html">Termos</a>
-        <a href="privacidade.html">Privacidade</a>
-      </nav>
-      <div class="account-wrap">
-        <button class="account-button" id="account-button" type="button">Entrar</button>
-        <div class="account-menu" id="account-menu" hidden>
-          <small>Conta conectada</small>
-          <strong id="account-email"></strong>
-          <button id="logout-button" type="button">Sair da conta</button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero" id="inicio">
-      <div class="hero-copy">
-        <span class="eyebrow">LIPEX INTERACTIVE</span>
-        <h1>Transforme sua LIVE em uma experiência interativa.</h1>
-        <p>Jogos desenvolvidos para criadores de conteúdo que querem transformar presentes, interações e eventos da LIVE em batalhas visuais em tempo real.</p>
-        <div class="hero-actions">
-          <a class="btn primary" href="#jogos">Conhecer os jogos</a>
-          <a class="btn secondary" href="#como-funciona">Como funciona</a>
-        </div>
-        <div class="trust-row">
-          <span>✓ Licença vinculada à conta</span>
-          <span>✓ Pagamento seguro</span>
-          <span>✓ Ativação automática</span>
-        </div>
-      </div>
-
-      <div class="launcher-preview">
-        <div class="window-bar"><span></span><span></span><span></span><strong>LipeX Interactive</strong></div>
-        <div class="preview-content">
-          <span class="eyebrow">MINHA BIBLIOTECA</span>
-          <div class="mini-game">
-            <div class="mini-icon football">⚽</div>
-            <div><strong>Messi vs Ronaldo</strong><small>Licença ativa na sua conta</small></div>
-            <button type="button">JOGAR</button>
-          </div>
-          <div class="mini-game">
-            <div class="mini-icon phone">📱</div>
-            <div><strong>Android vs iPhone</strong><small>Licença ativa na sua conta</small></div>
-            <button type="button">JOGAR</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="jogos">
-      <div class="section-heading">
-        <span class="eyebrow">CATÁLOGO</span>
-        <h2>Jogos disponíveis</h2>
-        <p>Entre na sua conta LipeX, escolha um jogo e finalize a compra no checkout seguro.</p>
-      </div>
-      <div class="games-grid">
-        <article class="game-card green">
-          <div class="game-cover football">⚽</div>
-          <div class="game-body">
-            <span class="version">V29</span>
-            <h3>Messi vs Ronaldo</h3>
-            <p>Batalha interativa inspirada no futebol, preparada para integração local com TikFinity durante transmissões no TikTok LIVE.</p>
-            <div class="price-row"><div><small>Licença digital</small><strong>R$ 139,90</strong></div><button class="buy-button" type="button" data-buy-product="messi-vs-ronaldo">Comprar</button></div>
-          </div>
-        </article>
-        <article class="game-card purple">
-          <div class="game-cover phone">📱</div>
-          <div class="game-body">
-            <span class="version">V77</span>
-            <h3>Android vs iPhone</h3>
-            <p>Batalha visual Android vs iPhone com eventos interativos para transmissões e integração local ao TikFinity.</p>
-            <div class="price-row"><div><small>Licença digital</small><strong>R$ 149,90</strong></div><button class="buy-button" type="button" data-buy-product="android-vs-iphone">Comprar</button></div>
-          </div>
-        </article>
-      </div>
-      <p class="catalog-note">A compra fica vinculada à conta LipeX usada no site. Após a confirmação do pagamento pelo backend, a licença é liberada automaticamente no LipeX Launcher.</p>
-    </section>
-
-    <section class="section soft" id="como-funciona">
-      <div class="section-heading">
-        <span class="eyebrow">COMO FUNCIONA</span>
-        <h2>Compra, ativação e jogo em poucos passos</h2>
-      </div>
-      <div class="steps">
-        <div class="step"><span>01</span><h3>Entre na conta</h3><p>Use sua conta LipeX no site. É essa mesma conta que recebe a licença no launcher.</p></div>
-        <div class="step"><span>02</span><h3>Escolha e pague</h3><p>Selecione o jogo e finalize a compra no checkout disponibilizado pelo provedor de pagamento.</p></div>
-        <div class="step"><span>03</span><h3>Ativação automática</h3><p>Após a confirmação do pagamento, a licença é adicionada automaticamente à sua conta.</p></div>
-        <div class="step"><span>04</span><h3>Jogar</h3><p>Abra o LipeX Launcher. O jogo adquirido aparecerá em Minha Biblioteca quando a licença estiver ativa.</p></div>
-      </div>
-    </section>
-
-    <section class="section security">
-      <div>
-        <span class="eyebrow">SEGURANÇA</span>
-        <h2>Licenciamento desenvolvido para proteger sua compra.</h2>
-        <p>O LipeX Interactive utiliza autenticação por conta, validação de licença no servidor e autorização de dispositivo. A liberação de produtos pagos acontece somente após a confirmação do pagamento pelo backend.</p>
-      </div>
-      <div class="security-box"><span>🔐</span><div><strong>Licença vinculada à conta</strong><small>O acesso ao produto é conferido online antes da execução.</small></div></div>
-      <div class="security-box"><span>🖥️</span><div><strong>Gerenciamento de dispositivo</strong><small>Dispositivos autorizados podem ser administrados pelo launcher.</small></div></div>
-      <div class="security-box"><span>⚡</span><div><strong>Liberação automática</strong><small>Pagamentos aprovados podem liberar a licença sem intervenção manual.</small></div></div>
-    </section>
-
-    <section class="section" id="faq">
-      <div class="section-heading"><span class="eyebrow">DÚVIDAS</span><h2>Perguntas frequentes</h2></div>
-      <div class="faq">
-        <details><summary>O que eu recebo ao comprar um jogo?</summary><p>Você recebe uma licença digital vinculada à sua conta LipeX Interactive. Depois da confirmação do pagamento, o produto é exibido em Minha Biblioteca.</p></details>
-        <details><summary>Preciso usar a mesma conta no site e no launcher?</summary><p>Sim. A licença é vinculada à conta usada na compra, então entre no LipeX Launcher com o mesmo e-mail utilizado no site.</p></details>
-        <details><summary>Preciso reinstalar o launcher depois de comprar?</summary><p>Não. Quando a licença é liberada, a biblioteca da conta é atualizada e o jogo adquirido passa a ficar disponível no próprio LipeX Interactive.</p></details>
-        <details><summary>Os jogos funcionam com TikTok LIVE?</summary><p>Os produtos do catálogo são desenvolvidos para experiências interativas em transmissões, com integrações locais indicadas na descrição de cada jogo.</p></details>
-        <details><summary>Como são tratados pagamentos e dados pessoais?</summary><p>O pagamento é processado por provedores externos de pagamento. O LipeX não armazena dados completos de cartão. Consulte nossa Política de Privacidade para detalhes adicionais.</p></details>
-      </div>
-    </section>
-
-    <section class="cta">
-      <span class="eyebrow">LIPEX INTERACTIVE</span>
-      <h2>Uma biblioteca. Vários jogos. Uma única conta.</h2>
-      <p>O catálogo continuará recebendo novas experiências interativas.</p>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div><strong>LipeX Interactive</strong><p>Software e licenças digitais para experiências interativas em transmissões ao vivo.</p></div>
-    <div class="footer-links">
-      <a href="termos.html">Termos de Uso</a>
-      <a href="privacidade.html">Política de Privacidade</a>
-      <a href="reembolso.html">Política de Reembolso</a>
-    </div>
-    <small>© 2026 LipeX Interactive. Todos os direitos reservados.</small>
-  </footer>
-
-  <div class="auth-modal" id="auth-modal" aria-hidden="true">
-    <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <button class="auth-close" id="auth-close" type="button" aria-label="Fechar">×</button>
-      <span class="eyebrow">CONTA LIPEX</span>
-      <h2 id="auth-title">Entrar na LipeX</h2>
-      <p id="auth-subtitle">A compra será vinculada à sua conta e liberada no launcher.</p>
-      <form id="auth-form">
-        <label for="auth-email">E-mail</label>
-        <input id="auth-email" type="email" autocomplete="email" placeholder="seu@email.com" required>
-        <label for="auth-password">Senha</label>
-        <input id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="Sua senha" required>
-        <p class="auth-feedback" id="auth-feedback"></p>
-        <button class="btn primary auth-submit" id="auth-submit" type="submit">Entrar</button>
-      </form>
-      <div class="auth-switch-row"><span id="auth-switch-text">Ainda não tem conta?</span><button id="auth-switch" type="button">Criar conta</button></div>
-      <small class="auth-legal">Ao criar uma conta, você declara estar de acordo com os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</small>
-    </div>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script src="config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+<body data-title-pt="LipeX Interactive Games">
+<div class="payment-banner" hidden="" id="payment-banner"></div>
+<header class="site-header">
+<a aria-label="LipeX Interactive Games" class="brand" href="#inicio">
+<img alt="Logo LipeX Interactive Games" class="brand-emblem" src="assets/lipex-emblem.png"/>
+<span class="brand-copy"><strong data-i18n="LipeX">LipeX</strong><small data-i18n="INTERACTIVE GAMES">INTERACTIVE GAMES</small></span>
+</a>
+<nav aria-label="Navegação principal" class="nav">
+<a data-i18n="Recursos" href="#recursos">Recursos</a>
+<a data-i18n="Como funciona" href="#como-funciona">Como funciona</a>
+<a data-i18n="Jogos" href="#jogos">Jogos</a>
+<a data-i18n="Comunidade" href="#comunidade">Comunidade</a><a data-i18n="FAQ" href="#faq">FAQ</a>
+</nav>
+<div class="header-actions"><div class="language-wrap">
+<button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar idioma" class="language-button" data-i18n-aria-label="Selecionar idioma" data-language-toggle="" type="button">
+<svg aria-hidden="true" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z"></path></svg>
+<span data-i18n="PT" data-language-current="">PT</span>
+</button>
+<div class="language-menu" hidden="">
+<button data-language-option="pt" role="radio" type="button"><span class="lang-code" data-i18n="PT">PT</span><span data-i18n="Português (Brasil)">Português (Brasil)</span><b data-i18n="✓">✓</b></button>
+<button data-language-option="en" role="radio" type="button"><span class="lang-code" data-i18n="EN">EN</span><span data-i18n="English">English</span><b data-i18n="✓">✓</b></button>
+</div>
+</div>
+<div class="currency-wrap">
+<button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar moeda" class="currency-button" data-i18n-aria-label="Selecionar moeda" data-currency-toggle="" type="button">
+<span aria-hidden="true" class="currency-glyph">¤</span><span data-currency-current="">BRL</span>
+</button>
+<div class="currency-menu" hidden="">
+<button data-currency-option="BRL" role="radio" type="button"><span class="currency-code">BRL</span><span data-i18n="Real brasileiro">Real brasileiro</span><b>✓</b></button>
+<button data-currency-option="USD" role="radio" type="button"><span class="currency-code">USD</span><span data-i18n="Dólar americano">Dólar americano</span><b>✓</b></button>
+</div>
+</div>
+<a class="header-community" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<img alt="" src="assets/lipex-emblem.png"/><span data-i18n="Entrar na comunidade">Entrar na comunidade</span></a>
+<div class="account-wrap">
+<button class="account-button" data-i18n="Entrar" id="account-button" type="button">Entrar</button>
+<div class="account-menu" hidden="" id="account-menu">
+<small data-i18n="Conta conectada">Conta conectada</small>
+<strong id="account-email"></strong>
+<button class="account-menu-manage" data-i18n="Gerenciar conta" id="manage-account-button" type="button">Gerenciar conta</button>
+<button data-i18n="Sair da conta" id="logout-button" type="button">Sair da conta</button>
+</div>
+</div>
+</div>
+</header>
+<main>
+<section class="hero" id="inicio">
+<div class="hero-copy">
+<span class="eyebrow"><i></i><span data-i18n="LIPEX INTERACTIVE GAMES">LIPEX INTERACTIVE GAMES</span></span>
+<h1><span class="hero-title-line hero-title-white" data-i18n="Sua LIVE vira">Sua LIVE vira</span><br/><span class="hero-title-line hero-title-gradient" data-i18n="um jogo de verdade.">um jogo de verdade.</span></h1>
+<p data-i18n="Experiências interativas feitas para streamers transformarem presentes, eventos e participação do chat em disputas visuais ao vivo.">Experiências interativas feitas para streamers transformarem presentes, eventos e participação do chat em disputas visuais ao vivo.</p>
+<div class="hero-actions">
+<a class="btn btn-primary btn-community-blue" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<img alt="" src="assets/lipex-emblem.png"/><span data-i18n="Entrar na Comunidade">Entrar na Comunidade</span></a>
+<a class="btn btn-primary btn-download" href="https://pub-9968f55f775840c5b7025794107bc7e0.r2.dev/LipeX%20Interactive%20Games_0.1.24_x64-setup.exe" rel="noopener noreferrer" target="_blank">
+<svg aria-hidden="true" viewbox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14"></path></svg><span data-i18n="Baixar Launcher">Baixar Launcher</span></a>
+<a class="btn btn-ghost" data-i18n="Ver jogos" href="#jogos">Ver jogos</a>
+</div>
+<div class="hero-proof">
+<span data-i18n="Licença vinculada à conta">Licença vinculada à conta</span>
+<span data-i18n="Ativação automática">Ativação automática</span>
+<span data-i18n="Launcher próprio">Launcher próprio</span>
+</div>
+</div>
+<aside aria-label="Comunidade LipeX" class="community-hub">
+<div class="hub-brand">
+<img alt="LipeX Interactive Games" src="assets/lipex-emblem.png"/>
+<div>
+<strong data-i18n="LipeX Interactive Games">LipeX Interactive Games</strong>
+<span class="hub-status"><i></i><span data-i18n="Comunidade Ativa">Comunidade Ativa</span></span>
+</div>
+</div>
+<div class="hub-links">
+<a href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<span class="hub-icon">▶</span>
+<div><strong data-i18n="Vídeo demonstrativo de cada jogo">Vídeo demonstrativo de cada jogo</strong><small data-i18n="Veja como cada experiência funciona antes de escolher.">Veja como cada experiência funciona antes de escolher.</small></div>
+<b>↗</b>
+</a>
+<a href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<span class="hub-icon">?</span>
+<div><strong data-i18n="Ajuda e suporte com os desenvolvedores">Ajuda e suporte com os desenvolvedores</strong><small data-i18n="Tire dúvidas e acompanhe orientações diretamente na comunidade.">Tire dúvidas e acompanhe orientações diretamente na comunidade.</small></div>
+<b>↗</b>
+</a>
+<a href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<span class="hub-icon">◎</span>
+<div><strong data-i18n="Network e união entre os streamers">Network e união entre os streamers</strong><small data-i18n="Converse com criadores, troque experiências e cresça junto.">Converse com criadores, troque experiências e cresça junto.</small></div>
+<b>↗</b>
+</a>
+<a href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<span class="hub-icon">↻</span>
+<div><strong data-i18n="Novos jogos e atualizações">Novos jogos e atualizações</strong><small data-i18n="Acompanhe lançamentos, melhorias e novidades do ecossistema LipeX.">Acompanhe lançamentos, melhorias e novidades do ecossistema LipeX.</small></div>
+<b>↗</b>
+</a>
+</div>
+</aside>
+</section>
+<section class="section feature-strip" id="recursos">
+<div class="section-label" data-i18n="FEITO PARA STREAMERS">FEITO PARA STREAMERS</div>
+<div class="feature-grid feature-grid-three">
+<article class="feature-card">
+<div class="feature-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M20.1 15.2A8.4 8.4 0 0 1 8.8 3.9 8.5 8.5 0 1 0 20.1 15.2Z"></path></svg></div>
+<h3 data-i18n="Lives AFK">Lives AFK</h3>
+<p data-i18n="Abra sua LIVE e deixe a dinâmica funcionando sem precisar ficar mexendo no PC o tempo todo. O jogo continua recebendo as interações do público.">Abra sua LIVE e deixe a dinâmica funcionando sem precisar ficar mexendo no PC o tempo todo. O jogo continua recebendo as interações do público.</p>
+</article>
+<article class="feature-card">
+<div class="feature-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm10 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M14 13h3a5 5 0 0 1 5 5v2"></path></svg></div>
+<h3 data-i18n="O público faz a sua LIVE">O público faz a sua LIVE</h3>
+<p data-i18n="Sua LIVE não depende só de você para engajar ou funcionar. O público faz as interações e mantém a transmissão dinâmica.">Sua LIVE não depende só de você para engajar ou funcionar. O público faz as interações e mantém a transmissão dinâmica.</p>
+</article>
+<article class="feature-card">
+<div class="feature-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"></path><path d="m17 15 3 2-3 2v-4Z"></path></svg></div>
+<h3 data-i18n="Praticidade e facilidade">Praticidade e facilidade</h3>
+<p data-i18n="Interface intuitiva e guiada no launcher e nos jogos, pensada para você configurar, abrir e começar a usar sem complicação.">Interface intuitiva e guiada no launcher e nos jogos, pensada para você configurar, abrir e começar a usar sem complicação.</p>
+</article>
+</div>
+</section>
+<section class="section how" id="como-funciona">
+<div class="section-heading centered-heading compact">
+<span class="eyebrow"><i></i><span data-i18n="COMO FUNCIONA">COMO FUNCIONA</span></span>
+<h2 data-i18n="Da compra ao jogo em quatro passos.">Da compra ao jogo em quatro passos.</h2>
+</div>
+<div class="steps">
+<article class="step"><span>01</span><h3 data-i18n="Entre na sua conta">Entre na sua conta</h3><p data-i18n="Use no site a mesma conta que você usa no LipeX Launcher.">Use no site a mesma conta que você usa no LipeX Launcher.</p></article>
+<article class="step"><span>02</span><h3 data-i18n="Escolha o jogo">Escolha o jogo</h3><p data-i18n="Abra os detalhes, veja fotos, preço e, se quiser, acesse a gameplay pelo Discord.">Abra os detalhes, veja fotos, preço e, se quiser, acesse a gameplay pelo Discord.</p></article>
+<article class="step"><span>03</span><h3 data-i18n="Licença automática">Licença automática</h3><p data-i18n="Após a confirmação do pagamento, a licença é vinculada automaticamente à sua conta.">Após a confirmação do pagamento, a licença é vinculada automaticamente à sua conta.</p></article>
+<article class="step"><span>04</span><h3 data-i18n="Abra o launcher">Abra o launcher</h3><p data-i18n="Atualize a biblioteca e o jogo estará pronto para baixar e jogar.">Atualize a biblioteca e o jogo estará pronto para baixar e jogar.</p></article>
+</div>
+</section>
+<section class="section catalog" id="jogos">
+<div class="section-heading split-heading">
+<div>
+<span class="eyebrow"><i></i><span data-i18n="JOGOS">JOGOS</span></span>
+<h2 data-i18n="Escolha o próximo jogo da sua LIVE.">Escolha o próximo jogo da sua LIVE.</h2>
+</div>
+<p data-i18n="Clique em um card para abrir a página do jogo com fotos, informações e preço. Se já decidiu, o botão Comprar leva direto ao checkout.">Clique em um card para abrir a página do jogo com fotos, informações e preço. Se já decidiu, o botão Comprar leva direto ao checkout.</p>
+</div>
+<div class="games-grid">
+<article aria-label="Abrir detalhes de Messi vs Ronaldo" class="game-card clickable-game-card" data-product-page="messi-vs-ronaldo.html" role="link" tabindex="0">
+<div class="game-media">
+<img alt="Messi vs Ronaldo" src="assets/messi-vs-ronaldo-cover.png"/>
+<div class="media-gradient"></div>
+<span class="game-version" data-i18n="V31">V31</span>
+<a aria-label="Assistir gameplay de Messi vs Ronaldo no Discord" class="media-play" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank"><span class="play-icon">▶</span><span data-i18n="Ver gameplay">Ver gameplay</span></a>
+</div>
+<div class="game-content">
+<div class="game-topline"><span data-i18n="FUTEBOL">FUTEBOL</span><span data-i18n="TIKTOK LIVE">TIKTOK LIVE</span></div>
+<h3 data-i18n="Messi vs Ronaldo">Messi vs Ronaldo</h3>
+<p data-i18n="Batalha interativa de futebol com placar, torcida temática e eventos disparados durante a transmissão.">Batalha interativa de futebol com placar, torcida temática e eventos disparados durante a transmissão.</p>
+<div class="game-footer"><div class="price"><small data-i18n="Licença digital">Licença digital</small><strong data-price-brl="139.90" data-price-usd="28.00">R$ 139,90</strong></div><button class="buy-button" data-buy-product="messi-vs-ronaldo" data-i18n="Comprar" type="button">Comprar</button></div>
+<span class="card-detail-hint"><span data-i18n="Clique no card para ver detalhes">Clique no card para ver detalhes</span><b>↗</b></span>
+</div>
+</article>
+<article aria-label="Abrir detalhes de Android vs iPhone" class="game-card clickable-game-card" data-product-page="android-vs-iphone.html" role="link" tabindex="0">
+<div class="game-media">
+<img alt="Android vs iPhone" src="assets/android-vs-iphone-cover.png"/>
+<div class="media-gradient"></div>
+<span class="game-version" data-i18n="V77">V77</span>
+<a aria-label="Assistir gameplay de Android vs iPhone no Discord" class="media-play" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank"><span class="play-icon">▶</span><span data-i18n="Ver gameplay">Ver gameplay</span></a>
+</div>
+<div class="game-content">
+<div class="game-topline"><span data-i18n="BATALHA VISUAL">BATALHA VISUAL</span><span data-i18n="TIKTOK LIVE">TIKTOK LIVE</span></div>
+<h3 data-i18n="Android vs iPhone">Android vs iPhone</h3>
+<p data-i18n="Duelo visual entre Android e iPhone com personagens, placar e eventos interativos para a sua LIVE.">Duelo visual entre Android e iPhone com personagens, placar e eventos interativos para a sua LIVE.</p>
+<div class="game-footer"><div class="price"><small data-i18n="Licença digital">Licença digital</small><strong data-price-brl="149.90" data-price-usd="29.00">R$ 149,90</strong></div><button class="buy-button" data-buy-product="android-vs-iphone" data-i18n="Comprar" type="button">Comprar</button></div>
+<span class="card-detail-hint"><span data-i18n="Clique no card para ver detalhes">Clique no card para ver detalhes</span><b>↗</b></span>
+</div>
+</article>
+</div>
+</section>
+<section class="section social-community" id="comunidade">
+<div class="section-heading split-heading social-heading">
+<div>
+<span class="eyebrow"><i></i><span data-i18n="COMUNIDADE">COMUNIDADE</span></span>
+<h2 data-i18n="Acompanhe nossas redes sociais.">Acompanhe nossas redes sociais.</h2>
+</div>
+<p data-i18n="Entre na comunidade LipeX, acompanhe novidades, tire dúvidas, conheça outros streamers e fique por dentro dos próximos jogos e atualizações.">Entre na comunidade LipeX, acompanhe novidades, tire dúvidas, conheça outros streamers e fique por dentro dos próximos jogos e atualizações.</p>
+</div>
+<div class="social-grid">
+<a class="social-card" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">
+<img alt="Discord" src="assets/social/discord.png"/>
+<div><strong data-i18n="Discord">Discord</strong><span data-i18n="Comunidade oficial LipeX">Comunidade oficial LipeX</span></div>
+<b>↗</b>
+</a>
+<a class="social-card" href="https://www.instagram.com/_.lipex_" rel="noopener noreferrer" target="_blank">
+<img alt="Instagram" src="assets/social/instagram.png"/>
+<div><strong data-i18n="Instagram">Instagram</strong><span data-i18n="@_.lipex_">@_.lipex_</span></div>
+<b>↗</b>
+</a>
+<a class="social-card" href="https://www.tiktok.com/@_lipe__" rel="noopener noreferrer" target="_blank">
+<img alt="TikTok" src="assets/social/tiktok.png"/>
+<div><strong data-i18n="TikTok">TikTok</strong><span data-i18n="@_lipe__">@_lipe__</span></div>
+<b>↗</b>
+</a>
+<a class="social-card" href="https://www.youtube.com/@lipex8" rel="noopener noreferrer" target="_blank">
+<img alt="YouTube" src="assets/social/youtube.svg"/>
+<div><strong data-i18n="YouTube">YouTube</strong><span data-i18n="@lipex8">@lipex8</span></div>
+<b>↗</b>
+</a>
+</div>
+</section><section class="section faq-section" id="faq">
+<div class="section-heading split-heading">
+<div><span class="eyebrow"><i></i><span data-i18n="DÚVIDAS">DÚVIDAS</span></span><h2 data-i18n="Perguntas frequentes.">Perguntas frequentes.</h2></div>
+<p data-i18n="Informações rápidas sobre compra, conta, licença, comunidade e funcionamento do launcher.">Informações rápidas sobre compra, conta, licença, comunidade e funcionamento do launcher.</p>
+</div>
+<div class="faq">
+<details><summary data-i18n="O que eu recebo ao comprar um jogo?">O que eu recebo ao comprar um jogo?</summary><p data-i18n="Você recebe uma licença digital vinculada à sua conta LipeX Interactive. Depois da confirmação do pagamento, o produto é exibido em Minha Biblioteca.">Você recebe uma licença digital vinculada à sua conta LipeX Interactive. Depois da confirmação do pagamento, o produto é exibido em Minha Biblioteca.</p></details>
+<details><summary data-i18n="Onde eu assisto à gameplay antes de comprar?">Onde eu assisto à gameplay antes de comprar?</summary><p data-i18n="Na página de cada jogo existe o botão “Assistir Gameplay”, que leva você para a comunidade LipeX no Discord.">Na página de cada jogo existe o botão “Assistir Gameplay”, que leva você para a comunidade LipeX no Discord.</p></details>
+<details><summary data-i18n="Preciso usar a mesma conta no site e no launcher?">Preciso usar a mesma conta no site e no launcher?</summary><p data-i18n="Sim. A licença é vinculada à conta usada na compra, então entre no LipeX Launcher com o mesmo e-mail utilizado no site.">Sim. A licença é vinculada à conta usada na compra, então entre no LipeX Launcher com o mesmo e-mail utilizado no site.</p></details>
+<details><summary data-i18n="Preciso reinstalar o launcher depois de comprar?">Preciso reinstalar o launcher depois de comprar?</summary><p data-i18n="Não. Quando a licença é liberada, a biblioteca da conta é atualizada e o jogo adquirido passa a ficar disponível no próprio LipeX Launcher.">Não. Quando a licença é liberada, a biblioteca da conta é atualizada e o jogo adquirido passa a ficar disponível no próprio LipeX Launcher.</p></details>
+<details><summary data-i18n="Os jogos funcionam com TikTok LIVE?">Os jogos funcionam com TikTok LIVE?</summary><p data-i18n="Os produtos do catálogo são desenvolvidos para experiências interativas em transmissões, com integrações locais indicadas na descrição de cada jogo.">Os produtos do catálogo são desenvolvidos para experiências interativas em transmissões, com integrações locais indicadas na descrição de cada jogo.</p></details>
+<details><summary data-i18n="Como são tratados pagamentos e dados pessoais?">Como são tratados pagamentos e dados pessoais?</summary><p data-i18n="O pagamento é processado por provedores externos. O LipeX não armazena dados completos de cartão. Consulte nossa Política de Privacidade para mais detalhes.">O pagamento é processado por provedores externos. O LipeX não armazena dados completos de cartão. Consulte nossa Política de Privacidade para mais detalhes.</p></details>
+</div>
+</section>
+</main>
+<footer class="footer">
+<div class="footer-brand"><img alt="LipeX Interactive Games" src="assets/lipex-emblem.png"/><div><strong data-i18n="LipeX Interactive Games">LipeX Interactive Games</strong><p data-i18n="Jogos interativos para transmissões ao vivo.">Jogos interativos para transmissões ao vivo.</p></div></div>
+<div class="footer-links">
+<a data-i18n="Termos de Uso" href="termos.html">Termos de Uso</a>
+<a data-i18n="Política de Privacidade" href="privacidade.html">Política de Privacidade</a>
+<a data-i18n="Política de Reembolso" href="reembolso.html">Política de Reembolso</a>
+<a data-i18n="Discord" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank">Discord</a>
+<a data-i18n="Instagram" href="https://www.instagram.com/_.lipex_" rel="noopener noreferrer" target="_blank">Instagram</a>
+<a data-i18n="TikTok" href="https://www.tiktok.com/@_lipe__" rel="noopener noreferrer" target="_blank">TikTok</a>
+<a data-i18n="YouTube" href="https://www.youtube.com/@lipex8" rel="noopener noreferrer" target="_blank">YouTube</a></div>
+<small data-i18n="© 2026 LipeX Interactive Games. Todos os direitos reservados.">© 2026 LipeX Interactive Games. Todos os direitos reservados.</small>
+</footer>
+<div aria-hidden="true" class="auth-modal" id="auth-modal">
+<div aria-labelledby="auth-title" aria-modal="true" class="auth-card" role="dialog">
+<button aria-label="Fechar" class="auth-close" data-i18n-aria-label="Fechar" id="auth-close" type="button">×</button>
+<div class="auth-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span data-i18n="CONTA LIPEX">CONTA LIPEX</span></div>
+<h2 data-i18n="Entrar na LipeX" id="auth-title">Entrar na LipeX</h2>
+<p data-i18n="A compra será vinculada à sua conta e liberada no launcher." id="auth-subtitle">A compra será vinculada à sua conta e liberada no launcher.</p>
+<form id="auth-form">
+<label data-i18n="E-mail" for="auth-email">E-mail</label><input autocomplete="email" data-i18n-placeholder="seu@email.com" id="auth-email" placeholder="seu@email.com" required="" type="email"/>
+<div id="auth-password-field"><label data-i18n="Senha" for="auth-password">Senha</label><input autocomplete="current-password" data-i18n-placeholder="Sua senha" id="auth-password" minlength="6" placeholder="Sua senha" required="" type="password"/><div class="forgot-password-row"><button data-i18n="Esqueci minha senha" id="forgot-password-button" type="button">Esqueci minha senha</button></div></div>
+<p class="auth-feedback" id="auth-feedback"></p><button class="btn btn-primary auth-submit" data-i18n="Entrar" id="auth-submit" type="submit">Entrar</button>
+</form>
+<div class="auth-switch-row"><span data-i18n="Ainda não tem conta?" id="auth-switch-text">Ainda não tem conta?</span><button data-i18n="Criar conta" id="auth-switch" type="button">Criar conta</button></div>
+<small class="auth-legal"><span data-i18n="Ao criar uma conta, você declara estar de acordo com os">Ao criar uma conta, você declara estar de acordo com os </span><a data-i18n="Termos de Uso" href="termos.html">Termos de Uso</a><span data-i18n="e a"> e a </span><a data-i18n="Política de Privacidade" href="privacidade.html">Política de Privacidade</a>.</small>
+</div>
+</div>
+<div aria-hidden="true" class="account-settings-modal" id="account-settings-modal">
+<div aria-labelledby="account-settings-title" aria-modal="true" class="account-settings-card" role="dialog">
+<button aria-label="Fechar" class="auth-close" data-i18n-aria-label="Fechar" id="account-settings-close" type="button">×</button>
+<div class="auth-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span data-i18n="MINHA CONTA">MINHA CONTA</span></div>
+<h2 data-i18n="Gerenciar conta" id="account-settings-title">Gerenciar conta</h2>
+<p data-i18n="Altere sua senha ou gerencie sua conta LipeX.">Altere sua senha ou gerencie sua conta LipeX.</p>
+<div class="account-settings-email"><small data-i18n="E-mail da conta">E-mail da conta</small><strong id="settings-account-email"></strong></div>
+<section class="settings-section">
+<div class="settings-section-heading"><div><span data-i18n="SEGURANÇA">SEGURANÇA</span><h3 data-i18n="Alterar senha">Alterar senha</h3></div></div>
+<form id="change-password-form">
+<label data-i18n="Senha atual" for="current-password">Senha atual</label>
+<input autocomplete="current-password" data-i18n-placeholder="Digite sua senha atual" id="current-password" minlength="6" placeholder="Digite sua senha atual" required="" type="password"/>
+<label data-i18n="Nova senha" for="new-password">Nova senha</label>
+<input autocomplete="new-password" data-i18n-placeholder="Digite a nova senha" id="new-password" minlength="6" placeholder="Digite a nova senha" required="" type="password"/>
+<label data-i18n="Confirmar nova senha" for="confirm-password">Confirmar nova senha</label>
+<input autocomplete="new-password" data-i18n-placeholder="Repita a nova senha" id="confirm-password" minlength="6" placeholder="Repita a nova senha" required="" type="password"/>
+<p class="auth-feedback settings-feedback" id="password-feedback"></p>
+<button class="btn btn-primary settings-primary-button" data-i18n="Alterar senha" id="change-password-button" type="submit">Alterar senha</button>
+</form>
+</section>
+<section class="settings-section danger-section">
+<div class="settings-section-heading"><div><span data-i18n="ZONA DE PERIGO">ZONA DE PERIGO</span><h3 data-i18n="Excluir conta">Excluir conta</h3></div></div>
+<p data-i18n="Ao excluir sua conta, o acesso aos jogos, licenças e dispositivos vinculados será removido. Registros de compras podem ser preservados quando necessário para obrigações legais e financeiras.">Ao excluir sua conta, o acesso aos jogos, licenças e dispositivos vinculados será removido. Registros de compras podem ser preservados quando necessário para obrigações legais e financeiras.</p>
+<button class="danger-outline-button" data-i18n="Excluir minha conta" id="show-delete-account" type="button">Excluir minha conta</button>
+<div class="delete-confirmation" hidden="" id="delete-confirmation">
+<strong data-i18n="Esta ação não pode ser desfeita.">Esta ação não pode ser desfeita.</strong>
+<p data-i18n="Confirme sua senha e digite EXCLUIR para continuar.">Confirme sua senha e digite EXCLUIR para continuar.</p>
+<form id="delete-account-form">
+<label data-i18n="Senha atual" for="delete-current-password">Senha atual</label>
+<input autocomplete="current-password" data-i18n-placeholder="Digite sua senha atual" id="delete-current-password" minlength="6" placeholder="Digite sua senha atual" required="" type="password"/>
+<label data-i18n="Confirmação" for="delete-confirmation-text">Confirmação</label>
+<input autocomplete="off" data-i18n-placeholder="Digite EXCLUIR" id="delete-confirmation-text" placeholder="Digite EXCLUIR" required="" type="text"/>
+<p class="auth-feedback settings-feedback" id="delete-feedback"></p>
+<div class="delete-actions"><button class="danger-button" data-i18n="Excluir conta permanentemente" id="delete-account-button" type="submit">Excluir conta permanentemente</button><button class="settings-cancel-button" data-i18n="Cancelar" id="cancel-delete-account" type="button">Cancelar</button></div>
+</form>
+</div>
+</section>
+</div>
+</div>
+<div aria-live="polite" class="toast" id="toast" role="status"></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js"></script><script src="currency.js"></script><script src="app.js"></script>
 </body>
 </html>
