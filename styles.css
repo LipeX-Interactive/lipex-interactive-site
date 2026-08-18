@@ -1016,3 +1016,13 @@ body{
     width:min(190px,calc(100vw - 32px));
   }
 }
+
+/* FIX dropdown currency on game cards */
+.currency-card-wrap .currency-inline-menu{
+  top:auto;
+  bottom:calc(100% + 7px);
+  left:0;
+}
+.game-card .currency-wrap{
+  z-index:1200;
+}
