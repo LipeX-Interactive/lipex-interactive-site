@@ -1,6 +1,7 @@
 (() => {
   const STORAGE_KEY = "lipex_site_language";
   const EN = {
+    "Aviso do Windows: por enquanto, o launcher pode aparecer como “Fornecedor desconhecido” porque ainda não possui assinatura digital. Baixe o launcher somente pelo nosso site oficial. Se o SmartScreen aparecer, clique em “Mais informações” e depois em “Executar assim mesmo” e continue com a instalação segura.": "Windows notice: for now, the launcher may appear as “Unknown publisher” because it is not yet digitally signed. Download the launcher only from our official website. If SmartScreen appears, click “More info” and then “Run anyway” and continue with the secure installation.",
     "Os pagamentos internacionais estão temporariamente indisponíveis. Tente novamente em breve.": "International payments are temporarily unavailable. Please try again soon.",
     "Selecionar moeda": "Select currency",
     "Real brasileiro": "Brazilian Real",
