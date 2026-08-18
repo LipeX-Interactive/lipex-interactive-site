@@ -924,29 +924,95 @@ body{
 
 
 /* =========================================================
-   V8 — seletor BRL / USD + checkout por moeda
+   V8 — seletor BRL / USD junto ao preço
    ========================================================= */
-.currency-wrap{position:relative;z-index:560}
-.currency-button{
-  min-height:42px;min-width:70px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  border:1px solid #222a34;border-radius:11px;background:#090c10;color:#b8c3d0;font-size:11px;font-weight:800;
-  cursor:pointer;transition:.18s ease;white-space:nowrap
+.price-currency-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:2px;
+  min-width:0;
 }
-.currency-glyph{color:#8290a1;font-size:15px;line-height:1;transition:.18s ease}
-.currency-button:hover,.currency-button[aria-expanded="true"]{border-color:#394655;background:#0d1116;color:#fff}
-.currency-button:hover .currency-glyph,.currency-button[aria-expanded="true"] .currency-glyph{color:var(--cyan)}
-.currency-menu{
-  position:absolute;z-index:10050;top:calc(100% + 9px);right:0;width:222px;padding:7px;border:1px solid #293442;
-  border-radius:13px;background:rgba(7,10,14,.98);box-shadow:0 24px 70px rgba(0,0,0,.62);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)
+.price-currency-row > strong{margin-top:0!important;white-space:nowrap}
+
+.currency-wrap{position:relative;z-index:560;flex:0 0 auto}
+.currency-inline-button{
+  min-height:27px;
+  min-width:45px;
+  padding:0 8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #27313c;
+  border-radius:8px;
+  background:#090d12;
+  color:#aab6c5;
+  font-size:9px;
+  line-height:1;
+  font-weight:850;
+  letter-spacing:.02em;
+  cursor:pointer;
+  transition:.18s ease;
+  white-space:nowrap;
 }
-.currency-menu button{
-  width:100%;min-height:44px;display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:9px;padding:0 10px;
-  border:0;border-radius:9px;background:transparent;color:#aab6c5;text-align:left;font-size:11px;cursor:pointer
+.currency-inline-button:hover,
+.currency-inline-button[aria-expanded="true"]{
+  border-color:#3b4a59;
+  background:#0d131a;
+  color:#fff;
 }
-.currency-menu button:hover{background:#0d131a;color:#fff}
-.currency-menu button.active{background:#0c151d;color:#fff}
-.currency-menu .currency-code{color:var(--cyan);font-size:10px;font-weight:900;letter-spacing:.06em}
-.currency-menu b{color:var(--cyan);opacity:0;font-size:11px}.currency-menu button.active b{opacity:1}
-@media(max-width:1030px){.currency-button{min-width:64px;padding-left:9px;padding-right:9px}}
-@media(max-width:720px){.currency-button{min-width:62px;padding:0 9px}.currency-menu{position:fixed;right:12px;top:72px;width:min(260px,calc(100% - 24px))}}
+
+.currency-inline-menu{
+  position:absolute;
+  z-index:10050;
+  top:calc(100% + 7px);
+  left:0;
+  width:190px;
+  padding:6px;
+  border:1px solid #293442;
+  border-radius:11px;
+  background:rgba(7,10,14,.985);
+  box-shadow:0 20px 60px rgba(0,0,0,.62);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.currency-inline-menu button{
+  width:100%;
+  min-height:39px;
+  display:grid;
+  grid-template-columns:34px 1fr auto;
+  align-items:center;
+  gap:8px;
+  padding:0 9px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:#aab6c5;
+  text-align:left;
+  font-size:10px;
+  cursor:pointer;
+}
+.currency-inline-menu button:hover{background:#0d131a;color:#fff}
+.currency-inline-menu button.active{background:#0c151d;color:#fff}
+.currency-inline-menu .currency-code{color:var(--cyan);font-size:9px;font-weight:900;letter-spacing:.06em}
+.currency-inline-menu b{color:var(--cyan);opacity:0;font-size:10px}
+.currency-inline-menu button.active b{opacity:1}
+
+.product-price-currency-row{gap:11px}
+.product-price-currency-row .currency-inline-button{
+  min-height:29px;
+  min-width:47px;
+  padding:0 9px;
+  font-size:9px;
+}
+
+@media(max-width:720px){
+  .price-currency-row{gap:8px}
+  .currency-inline-menu{
+    position:absolute;
+    left:0;
+    right:auto;
+    top:calc(100% + 7px);
+    width:min(190px,calc(100vw - 32px));
+  }
+}

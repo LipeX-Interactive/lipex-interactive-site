@@ -31,15 +31,6 @@
 <button data-language-option="en" role="radio" type="button"><span class="lang-code" data-i18n="EN">EN</span><span data-i18n="English">English</span><b data-i18n="✓">✓</b></button>
 </div>
 </div>
-<div class="currency-wrap">
-<button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar moeda" class="currency-button" data-i18n-aria-label="Selecionar moeda" data-currency-toggle="" type="button">
-<span aria-hidden="true" class="currency-glyph">¤</span><span data-currency-current="">BRL</span>
-</button>
-<div class="currency-menu" hidden="">
-<button data-currency-option="BRL" role="radio" type="button"><span class="currency-code">BRL</span><span data-i18n="Real brasileiro">Real brasileiro</span><b>✓</b></button>
-<button data-currency-option="USD" role="radio" type="button"><span class="currency-code">USD</span><span data-i18n="Dólar americano">Dólar americano</span><b>✓</b></button>
-</div>
-</div>
 <a class="header-community" href="https://discord.gg/KmnxYwV3ck" rel="noopener noreferrer" target="_blank"><img alt="" src="assets/lipex-emblem.png"/><span data-i18n="Entrar na comunidade">Entrar na comunidade</span></a>
 <div class="account-wrap">
 <button class="account-button" data-i18n="Entrar" id="account-button" type="button">Entrar</button>
@@ -68,7 +59,15 @@
 <div class="product-tags"><span data-i18n="V31">V31</span><span data-i18n="TIKTOK LIVE">TIKTOK LIVE</span><span data-i18n="LICENÇA DIGITAL">LICENÇA DIGITAL</span></div>
 <p class="product-description" data-i18n="Uma batalha interativa de futebol feita para transformar a participação do público em uma disputa visual entre Messi e Ronaldo durante a transmissão.">Uma batalha interativa de futebol feita para transformar a participação do público em uma disputa visual entre Messi e Ronaldo durante a transmissão.</p>
 <div class="product-price-box">
-<div><small data-i18n="Preço da licença">Preço da licença</small><strong data-price-brl="139.90" data-price-usd="28.00">R$ 139,90</strong></div>
+<div class="product-price-main"><small data-i18n="Preço da licença">Preço da licença</small><div class="price-currency-row product-price-currency-row"><strong data-price-brl="139.90" data-price-usd="28.00">R$ 139,90</strong><div class="currency-wrap currency-inline-wrap currency-product-wrap">
+<button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar moeda" class="currency-button currency-inline-button" data-i18n-aria-label="Selecionar moeda" data-currency-toggle="" type="button">
+<span data-currency-current="">BRL</span>
+</button>
+<div class="currency-menu currency-inline-menu" hidden="">
+<button data-currency-option="BRL" role="radio" type="button"><span class="currency-code">BRL</span><span data-i18n="Real brasileiro">Real brasileiro</span><b>✓</b></button>
+<button data-currency-option="USD" role="radio" type="button"><span class="currency-code">USD</span><span data-i18n="Dólar americano">Dólar americano</span><b>✓</b></button>
+</div>
+</div></div></div>
 <span data-i18n="Compra vinculada à sua conta LipeX">Compra vinculada à sua conta LipeX</span>
 </div>
 <div class="product-actions">
