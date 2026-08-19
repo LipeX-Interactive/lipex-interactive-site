@@ -2,10 +2,27 @@
   const STORAGE_KEY = "lipex_site_currency";
   const SUPPORTED = new Set(["BRL", "USD"]);
   const saved = localStorage.getItem(STORAGE_KEY);
-  let explicitChoice = SUPPORTED.has(saved);
-  let currentCurrency = explicitChoice
-    ? saved
-    : (window.LipexI18n?.getLanguage?.() === "en" ? "USD" : "BRL");
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedCurrency = String(urlParams.get("currency") || "").toUpperCase();
+  const hasRequestedCurrency = SUPPORTED.has(requestedCurrency);
+
+  let explicitChoice = hasRequestedCurrency || SUPPORTED.has(saved);
+  let currentCurrency = hasRequestedCurrency
+    ? requestedCurrency
+    : (SUPPORTED.has(saved)
+      ? saved
+      : (window.LipexI18n?.getLanguage?.() === "en" ? "USD" : "BRL"));
+
+  if (hasRequestedCurrency) {
+    localStorage.setItem(STORAGE_KEY, requestedCurrency);
+    urlParams.delete("currency");
+    const nextQuery = urlParams.toString();
+    const nextUrl =
+      window.location.pathname +
+      (nextQuery ? `?${nextQuery}` : "") +
+      window.location.hash;
+    window.history.replaceState({}, "", nextUrl);
+  }
 
   function formatPrice(amount, currency) {
     const value = Number(amount);

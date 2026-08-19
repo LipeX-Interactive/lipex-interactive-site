@@ -50,6 +50,56 @@
   let mode = "login";
   let currentUser = null;
   let supabaseClient = null;
+  let pendingDirectCheckout = null;
+
+  function captureDirectCheckoutRequest() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedProduct = String(params.get("checkout") || "").trim();
+    if (!requestedProduct) return;
+
+    const matchingButton = buyButtons.find(
+      (button) => button.dataset.buyProduct === requestedProduct
+    );
+    if (!matchingButton) return;
+
+    pendingDirectCheckout = requestedProduct;
+
+    // Remove only the checkout flag from the visible URL so refresh/back
+    // does not accidentally create another checkout session.
+    params.delete("checkout");
+    const nextQuery = params.toString();
+    const nextUrl =
+      window.location.pathname +
+      (nextQuery ? `?${nextQuery}` : "") +
+      window.location.hash;
+    window.history.replaceState({}, "", nextUrl);
+  }
+
+  function continueDirectCheckoutIfReady() {
+    if (!pendingDirectCheckout) return;
+
+    const matchingButton = buyButtons.find(
+      (button) => button.dataset.buyProduct === pendingDirectCheckout
+    );
+    if (!matchingButton) {
+      pendingDirectCheckout = null;
+      return;
+    }
+
+    if (!currentUser) {
+      openAuth("login");
+      setAuthFeedback(
+        tr("Entre na sua conta para continuar. Depois do login, abriremos o checkout automaticamente."),
+        "info"
+      );
+      return;
+    }
+
+    pendingDirectCheckout = null;
+    window.setTimeout(() => matchingButton.click(), 80);
+  }
+
+  captureDirectCheckoutRequest();
 
   function showToast(message, type = "info") {
     if (!toast) return;
@@ -321,6 +371,7 @@
           updateAccountUI(data.user);
           closeAuth();
           showToast(tr("Conta criada e login realizado."), "success");
+          continueDirectCheckoutIfReady();
         } else {
           setAuthFeedback(tr("Conta criada. Confira seu e-mail para confirmar o cadastro antes de entrar."), "success");
         }
@@ -335,6 +386,7 @@
         updateAccountUI(data.user);
         closeAuth();
         showToast(tr("Login realizado com sucesso."), "success");
+        continueDirectCheckoutIfReady();
       }
     } catch (error) {
       console.error(error);
@@ -561,9 +613,11 @@
 
     const { data } = await supabaseClient.auth.getSession();
     updateAccountUI(data?.session?.user || null);
+    continueDirectCheckoutIfReady();
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       updateAccountUI(session?.user || null);
+      if (session?.user) continueDirectCheckoutIfReady();
     });
   }
 
