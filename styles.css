@@ -1066,3 +1066,36 @@ body{
     line-height:1.48;
   }
 }
+
+
+/* =========================================================
+   LipeX Site Editor runtime
+   ========================================================= */
+:root{
+  --lipex-section-padding:94px;
+  --lipex-card-radius:18px;
+}
+.section{padding-top:var(--lipex-section-padding);padding-bottom:var(--lipex-section-padding)}
+.feature-grid,.social-grid,.faq details,.community-hub,.game-card{border-radius:var(--lipex-card-radius)}
+.lipex-btn-small{min-height:40px!important;padding-left:14px!important;padding-right:14px!important;font-size:12px!important}
+.lipex-btn-medium{min-height:48px!important}
+.lipex-btn-large{min-height:56px!important;padding-left:26px!important;padding-right:26px!important;font-size:15px!important}
+.lipex-custom-element-wrap{
+  width:100%;
+  display:flex;
+  position:relative;
+  z-index:2;
+}
+.lipex-custom-image{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:14px;
+  border:1px solid var(--line);
+  box-shadow:0 20px 70px rgba(0,0,0,.3);
+}
+.lipex-custom-text{
+  max-width:900px;
+  color:var(--text);
+  margin:0;
+}
