@@ -383,6 +383,7 @@
   }
 
   function markGenericVisualElements(config) {
+    // Textos controlados pelo editor tradicional continuam selecionáveis individualmente.
     for (const [key, selector] of Object.entries(SELECTORS)) {
       const node = document.querySelector(selector);
       if (!node) continue;
@@ -390,6 +391,7 @@
       node.dataset.lipexVisualKind = "text";
     }
 
+    // Botões principais do Hero.
     const buttonMap = [
       ["#inicio .btn-community-blue","hero_community"],
       ["#inicio .btn-download","hero_launcher"],
@@ -402,9 +404,90 @@
       node.dataset.lipexVisualKind = "button";
     });
 
-    document.querySelectorAll("#recursos .feature-card").forEach((node,index) => {
-      node.dataset.lipexVisualId = `feature:${index}`;
-      node.dataset.lipexVisualKind = "feature";
+    // Elementos fixos da V8. A ideia aqui é permitir mover praticamente tudo
+    // sem transformar o HTML em posicionamento absoluto.
+    const staticMap = [
+      [".brand","header:brand","group"],
+      [".brand-emblem","header:logo","image"],
+      [".brand-copy","header:brand-copy","group"],
+      [".nav a:nth-child(1)","header:nav-recursos","button"],
+      [".nav a:nth-child(2)","header:nav-como","button"],
+      [".nav a:nth-child(3)","header:nav-jogos","button"],
+      [".nav a:nth-child(4)","header:nav-comunidade","button"],
+      [".nav a:nth-child(5)","header:nav-faq","button"],
+      [".language-wrap","header:language","button"],
+      [".header-community","header:community","button"],
+      ["#account-button","header:account","button"],
+
+      ["#inicio .hero-copy","hero:copy","group"],
+      ["#inicio .hero-copy .eyebrow","hero:eyebrow","group"],
+      ["#inicio .hero-copy h1","hero:title","group"],
+      ["#inicio .hero-actions","hero:actions","group"],
+      ["#inicio .launcher-windows-note","hero:windows-note","box"],
+      ["#inicio .hero-proof span:nth-child(1)","hero:proof-1","box"],
+      ["#inicio .hero-proof span:nth-child(2)","hero:proof-2","box"],
+      ["#inicio .hero-proof span:nth-child(3)","hero:proof-3","box"],
+
+      ["#inicio .community-hub","hub:container","box"],
+      ["#inicio .hub-brand","hub:brand","group"],
+      ["#inicio .hub-brand img","hub:logo","image"],
+      ["#inicio .hub-status","hub:status","group"],
+      ["#inicio .hub-links a:nth-child(1)","hub:item-1","box"],
+      ["#inicio .hub-links a:nth-child(2)","hub:item-2","box"],
+      ["#inicio .hub-links a:nth-child(3)","hub:item-3","box"],
+      ["#inicio .hub-links a:nth-child(4)","hub:item-4","box"],
+
+      ["#recursos .section-label","resources:label","text"],
+      ["#recursos .feature-card:nth-child(1)","feature:0","box"],
+      ["#recursos .feature-card:nth-child(2)","feature:1","box"],
+      ["#recursos .feature-card:nth-child(3)","feature:2","box"],
+      ["#recursos .feature-card:nth-child(1) .feature-icon","feature:icon-0","image"],
+      ["#recursos .feature-card:nth-child(2) .feature-icon","feature:icon-1","image"],
+      ["#recursos .feature-card:nth-child(3) .feature-icon","feature:icon-2","image"],
+
+      ["#como-funciona .section-heading","how:heading","group"],
+      ["#como-funciona .steps","how:steps","group"],
+      ["#como-funciona .step:nth-child(1)","how:step-1","box"],
+      ["#como-funciona .step:nth-child(2)","how:step-2","box"],
+      ["#como-funciona .step:nth-child(3)","how:step-3","box"],
+      ["#como-funciona .step:nth-child(4)","how:step-4","box"],
+
+      ["#jogos .section-heading","catalog:heading","group"],
+      ["#jogos .games-grid","catalog:grid","group"],
+
+      ["#comunidade .section-heading","community:heading","group"],
+      ["#comunidade .social-grid","community:grid","group"],
+
+      ["#faq .section-heading","faq:heading","group"],
+      ["#faq .faq","faq:list","group"],
+      ["#faq details:nth-child(1)","faq:item-1","box"],
+      ["#faq details:nth-child(2)","faq:item-2","box"],
+      ["#faq details:nth-child(3)","faq:item-3","box"],
+      ["#faq details:nth-child(4)","faq:item-4","box"],
+      ["#faq details:nth-child(5)","faq:item-5","box"],
+      ["#faq details:nth-child(6)","faq:item-6","box"],
+
+      [".footer-brand","footer:brand","group"],
+      [".footer-brand img","footer:logo","image"],
+      [".footer-links","footer:links","group"],
+      [".footer-links a:nth-child(1)","footer:link-1","button"],
+      [".footer-links a:nth-child(2)","footer:link-2","button"],
+      [".footer-links a:nth-child(3)","footer:link-3","button"],
+      [".footer-links a:nth-child(4)","footer:link-4","button"],
+      [".footer-links a:nth-child(5)","footer:link-5","button"],
+      [".footer-links a:nth-child(6)","footer:link-6","button"],
+      [".footer-links a:nth-child(7)","footer:link-7","button"],
+      [".footer > small","footer:copyright","text"],
+    ];
+
+    staticMap.forEach(([selector,id,kind]) => {
+      const node = document.querySelector(selector);
+      if (!node) return;
+      // Não substitui IDs mais específicos, como textos e cards dinâmicos.
+      if (!node.dataset.lipexVisualId) {
+        node.dataset.lipexVisualId = id;
+        node.dataset.lipexVisualKind = kind;
+      }
     });
 
     for (const node of document.querySelectorAll("[data-lipex-visual-id]")) {
@@ -515,6 +598,11 @@
         startScale:visual.scale,
         baseWidth:Math.max(50,rect.width / Math.max(.35,visual.scale))
       };
+      parent.postMessage({
+        type:"lipex:visual-transform-start",
+        id:selectedVisualId,
+        visual
+      },"*");
       visualResizeHandle.setPointerCapture?.(event.pointerId);
     });
   }
@@ -619,6 +707,13 @@
       const dx = event.clientX - dragState.startX;
       const dy = event.clientY - dragState.startY;
       if (!dragState.moved && Math.hypot(dx,dy) < 3) return;
+      if (!dragState.moved) {
+        parent.postMessage({
+          type:"lipex:visual-transform-start",
+          id:dragState.id,
+          visual:getVisualForId(dragState.id)
+        },"*");
+      }
       dragState.moved = true;
       const visual = getVisualForId(dragState.id);
       visual.x = Math.round(dragState.originX + dx);
@@ -637,6 +732,23 @@
         const id = dragState.id, moved = dragState.moved;
         dragState = null;
         if (moved) parent.postMessage({type:"lipex:visual-transform-end",id},"*");
+      }
+    }, true);
+
+    window.addEventListener("keydown", event => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = String(event.key || "").toLowerCase();
+      if (key === "z") {
+        event.preventDefault();
+        event.stopPropagation();
+        parent.postMessage({
+          type:"lipex:visual-history",
+          action:event.shiftKey ? "redo" : "undo"
+        },"*");
+      } else if (key === "y") {
+        event.preventDefault();
+        event.stopPropagation();
+        parent.postMessage({type:"lipex:visual-history",action:"redo"},"*");
       }
     }, true);
 
