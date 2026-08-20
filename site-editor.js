@@ -43,7 +43,8 @@
     return {
       x: safeNumber(visual.x, 0) || 0,
       y: safeNumber(visual.y, 0) || 0,
-      scale: Math.max(.35, Math.min(3, safeNumber(visual.scale, 1) || 1)),
+      scale: Math.max(.2, Math.min(5, safeNumber(visual.scale, 1) || 1)),
+      rotate: safeNumber(visual.rotate, 0) || 0,
       z: safeNumber(visual.z, 1) || 1,
     };
   }
@@ -53,6 +54,7 @@
     if (!Array.isArray(config.catalog_items)) config.catalog_items = clone(DEFAULT_CATALOG);
     if (!Array.isArray(config.social_items)) config.social_items = clone(DEFAULT_SOCIALS);
     if (!config.visual_positions || typeof config.visual_positions !== "object") config.visual_positions = {};
+    if (!config.element_overrides || typeof config.element_overrides !== "object") config.element_overrides = {};
 
     config.catalog_items = config.catalog_items.map((item, index) => ({
       ...clone(DEFAULT_CATALOG[Math.min(index, DEFAULT_CATALOG.length - 1)] || DEFAULT_CATALOG[0]),
@@ -88,7 +90,7 @@
 
   function visualCss(visual) {
     const v = ensureVisual(visual);
-    return `translate(${v.x}px, ${v.y}px) scale(${v.scale})`;
+    return `translate(${v.x}px, ${v.y}px) rotate(${v.rotate}deg) scale(${v.scale})`;
   }
 
   function applyVisualToNode(node, visual) {
@@ -382,34 +384,35 @@
     });
   }
 
+  function markEditableNode(selector, id, kind = "element", root = document) {
+    const node = root.querySelector(selector);
+    if (!node) return null;
+    if (!node.dataset.lipexVisualId) {
+      node.dataset.lipexVisualId = id;
+      node.dataset.lipexVisualKind = kind;
+    }
+    if (!node.dataset.lipexOriginalHtml) node.dataset.lipexOriginalHtml = node.innerHTML;
+    if (!node.dataset.lipexOriginalText) node.dataset.lipexOriginalText = node.textContent || "";
+    if (node.matches("a") && !node.dataset.lipexOriginalHref) node.dataset.lipexOriginalHref = node.getAttribute("href") || "";
+    if (node.matches("img") && !node.dataset.lipexOriginalSrc) node.dataset.lipexOriginalSrc = node.getAttribute("src") || "";
+    return node;
+  }
+
   function markGenericVisualElements(config) {
-    // Textos controlados pelo editor tradicional continuam selecionáveis individualmente.
+    // Textos já conhecidos pelo Editor de Conteúdo.
     for (const [key, selector] of Object.entries(SELECTORS)) {
-      const node = document.querySelector(selector);
+      const node = markEditableNode(selector, `text:${key}`, "text");
       if (!node) continue;
-      node.dataset.lipexVisualId = `text:${key}`;
-      node.dataset.lipexVisualKind = "text";
     }
 
-    // Botões principais do Hero.
-    const buttonMap = [
-      ["#inicio .btn-community-blue","hero_community"],
-      ["#inicio .btn-download","hero_launcher"],
-      ["#inicio .btn-ghost","hero_games"],
-    ];
-    buttonMap.forEach(([selector,key]) => {
-      const node = document.querySelector(selector);
-      if (!node) return;
-      node.dataset.lipexVisualId = `button:${key}`;
-      node.dataset.lipexVisualKind = "button";
-    });
-
-    // Elementos fixos da V8. A ideia aqui é permitir mover praticamente tudo
-    // sem transformar o HTML em posicionamento absoluto.
-    const staticMap = [
+    // Mapa profundo da V8: containers, botões, logos, ícones, números, setas etc.
+    const deepMap = [
       [".brand","header:brand","group"],
       [".brand-emblem","header:logo","image"],
       [".brand-copy","header:brand-copy","group"],
+      [".brand-copy strong","header:brand-title","text"],
+      [".brand-copy small","header:brand-subtitle","text"],
+      [".nav","header:nav","group"],
       [".nav a:nth-child(1)","header:nav-recursos","button"],
       [".nav a:nth-child(2)","header:nav-como","button"],
       [".nav a:nth-child(3)","header:nav-jogos","button"],
@@ -417,48 +420,71 @@
       [".nav a:nth-child(5)","header:nav-faq","button"],
       [".language-wrap","header:language","button"],
       [".header-community","header:community","button"],
+      [".header-community img","header:community-icon","image"],
       ["#account-button","header:account","button"],
 
       ["#inicio .hero-copy","hero:copy","group"],
       ["#inicio .hero-copy .eyebrow","hero:eyebrow","group"],
+      ["#inicio .hero-copy .eyebrow i","hero:eyebrow-mark","icon"],
       ["#inicio .hero-copy h1","hero:title","group"],
       ["#inicio .hero-actions","hero:actions","group"],
+      ["#inicio .btn-community-blue","button:hero_community","button"],
+      ["#inicio .btn-community-blue img","hero:community-icon","image"],
+      ["#inicio .btn-download","button:hero_launcher","button"],
+      ["#inicio .btn-download svg","hero:launcher-icon","icon"],
+      ["#inicio .btn-ghost","button:hero_games","button"],
       ["#inicio .launcher-windows-note","hero:windows-note","box"],
-      ["#inicio .hero-proof span:nth-child(1)","hero:proof-1","box"],
-      ["#inicio .hero-proof span:nth-child(2)","hero:proof-2","box"],
-      ["#inicio .hero-proof span:nth-child(3)","hero:proof-3","box"],
+      ["#inicio .launcher-windows-note svg","hero:windows-icon","icon"],
+      ["#inicio .hero-proof","hero:proof-group","group"],
+      ["#inicio .hero-proof span:nth-child(1)","hero:proof-1","dot-owner"],
+      ["#inicio .hero-proof span:nth-child(2)","hero:proof-2","dot-owner"],
+      ["#inicio .hero-proof span:nth-child(3)","hero:proof-3","dot-owner"],
 
       ["#inicio .community-hub","hub:container","box"],
       ["#inicio .hub-brand","hub:brand","group"],
       ["#inicio .hub-brand img","hub:logo","image"],
+      ["#inicio .hub-brand strong","hub:brand-title","text"],
       ["#inicio .hub-status","hub:status","group"],
-      ["#inicio .hub-links a:nth-child(1)","hub:item-1","box"],
-      ["#inicio .hub-links a:nth-child(2)","hub:item-2","box"],
-      ["#inicio .hub-links a:nth-child(3)","hub:item-3","box"],
-      ["#inicio .hub-links a:nth-child(4)","hub:item-4","box"],
+      ["#inicio .hub-status i","hub:status-dot","icon"],
+      ["#inicio .hub-links","hub:links","group"],
 
       ["#recursos .section-label","resources:label","text"],
+      ["#recursos .feature-grid","resources:grid","group"],
       ["#recursos .feature-card:nth-child(1)","feature:0","box"],
       ["#recursos .feature-card:nth-child(2)","feature:1","box"],
       ["#recursos .feature-card:nth-child(3)","feature:2","box"],
-      ["#recursos .feature-card:nth-child(1) .feature-icon","feature:icon-0","image"],
-      ["#recursos .feature-card:nth-child(2) .feature-icon","feature:icon-1","image"],
-      ["#recursos .feature-card:nth-child(3) .feature-icon","feature:icon-2","image"],
+      ["#recursos .feature-card:nth-child(1) .feature-icon","feature:icon-0","icon"],
+      ["#recursos .feature-card:nth-child(2) .feature-icon","feature:icon-1","icon"],
+      ["#recursos .feature-card:nth-child(3) .feature-icon","feature:icon-2","icon"],
+      ["#recursos .feature-card:nth-child(1) h3","text:resources.card1_title","text"],
+      ["#recursos .feature-card:nth-child(1) p","text:resources.card1_desc","text"],
+      ["#recursos .feature-card:nth-child(2) h3","text:resources.card2_title","text"],
+      ["#recursos .feature-card:nth-child(2) p","text:resources.card2_desc","text"],
+      ["#recursos .feature-card:nth-child(3) h3","text:resources.card3_title","text"],
+      ["#recursos .feature-card:nth-child(3) p","text:resources.card3_desc","text"],
 
       ["#como-funciona .section-heading","how:heading","group"],
+      ["#como-funciona .section-heading .eyebrow i","how:eyebrow-mark","icon"],
       ["#como-funciona .steps","how:steps","group"],
       ["#como-funciona .step:nth-child(1)","how:step-1","box"],
       ["#como-funciona .step:nth-child(2)","how:step-2","box"],
       ["#como-funciona .step:nth-child(3)","how:step-3","box"],
       ["#como-funciona .step:nth-child(4)","how:step-4","box"],
+      ["#como-funciona .step:nth-child(1) > span","how:step-1-number","text"],
+      ["#como-funciona .step:nth-child(2) > span","how:step-2-number","text"],
+      ["#como-funciona .step:nth-child(3) > span","how:step-3-number","text"],
+      ["#como-funciona .step:nth-child(4) > span","how:step-4-number","text"],
 
       ["#jogos .section-heading","catalog:heading","group"],
+      ["#jogos .section-heading .eyebrow i","catalog:eyebrow-mark","icon"],
       ["#jogos .games-grid","catalog:grid","group"],
 
       ["#comunidade .section-heading","community:heading","group"],
+      ["#comunidade .section-heading .eyebrow i","community:eyebrow-mark","icon"],
       ["#comunidade .social-grid","community:grid","group"],
 
       ["#faq .section-heading","faq:heading","group"],
+      ["#faq .section-heading .eyebrow i","faq:eyebrow-mark","icon"],
       ["#faq .faq","faq:list","group"],
       ["#faq details:nth-child(1)","faq:item-1","box"],
       ["#faq details:nth-child(2)","faq:item-2","box"],
@@ -467,6 +493,7 @@
       ["#faq details:nth-child(5)","faq:item-5","box"],
       ["#faq details:nth-child(6)","faq:item-6","box"],
 
+      [".footer","footer:container","group"],
       [".footer-brand","footer:brand","group"],
       [".footer-brand img","footer:logo","image"],
       [".footer-links","footer:links","group"],
@@ -480,22 +507,188 @@
       [".footer > small","footer:copyright","text"],
     ];
 
-    staticMap.forEach(([selector,id,kind]) => {
-      const node = document.querySelector(selector);
-      if (!node) return;
-      // Não substitui IDs mais específicos, como textos e cards dinâmicos.
-      if (!node.dataset.lipexVisualId) {
-        node.dataset.lipexVisualId = id;
-        node.dataset.lipexVisualKind = kind;
+    deepMap.forEach(([selector,id,kind]) => markEditableNode(selector,id,kind));
+
+    // Quatro cards da comunidade: caixa, ícone, texto e seta.
+    document.querySelectorAll("#inicio .hub-links > a").forEach((card,index) => {
+      const n = index + 1;
+      if (!card.dataset.lipexVisualId) {
+        card.dataset.lipexVisualId = `hub:item-${n}`;
+        card.dataset.lipexVisualKind = "box";
       }
+      markEditableNode(".hub-icon",`hub:item-${n}-icon`,"icon",card);
+      markEditableNode("b",`hub:item-${n}-arrow`,"icon",card);
+    });
+
+    // Cards dinâmicos de jogo: partes visuais que não estavam disponíveis separadamente.
+    document.querySelectorAll("#jogos .game-card[data-lipex-item-id]").forEach(card => {
+      const itemId = card.dataset.lipexItemId;
+      const parts = [
+        [".game-media img",`gamepart:${itemId}:cover`,"image"],
+        [".game-version",`gamepart:${itemId}:version`,"text"],
+        [".media-play",`gamepart:${itemId}:play`,"button"],
+        [".media-play .play-icon",`gamepart:${itemId}:play-icon`,"icon"],
+        [".game-topline span:nth-child(1)",`gamepart:${itemId}:tag-1`,"text"],
+        [".game-topline span:nth-child(2)",`gamepart:${itemId}:tag-2`,"text"],
+        [".buy-button",`gamepart:${itemId}:buy`,"button"],
+        [".price",`gamepart:${itemId}:price`,"group"],
+        [".currency-wrap",`gamepart:${itemId}:currency`,"button"],
+        [".card-detail-hint",`gamepart:${itemId}:detail`,"group"],
+        [".card-detail-hint b",`gamepart:${itemId}:detail-arrow`,"icon"],
+      ];
+      parts.forEach(([selector,id,kind]) => markEditableNode(selector,id,kind,card));
+    });
+
+    // Redes sociais: ícone e seta individualmente.
+    document.querySelectorAll("#comunidade .social-card[data-lipex-item-id]").forEach(card => {
+      const itemId = card.dataset.lipexItemId;
+      markEditableNode("img",`socialpart:${itemId}:icon`,"image",card);
+      markEditableNode("b",`socialpart:${itemId}:arrow`,"icon",card);
+    });
+
+    // Custom elements.
+    document.querySelectorAll("[data-lipex-custom-element]").forEach(node => {
+      if (!node.dataset.lipexOriginalHtml) node.dataset.lipexOriginalHtml = node.innerHTML;
     });
 
     for (const node of document.querySelectorAll("[data-lipex-visual-id]")) {
       const id = node.dataset.lipexVisualId;
-      if (id.startsWith("game:") || id.startsWith("social:")) continue;
+      if (isRootGameVisualId(id) || isRootSocialVisualId(id)) continue;
       const visual = config.visual_positions?.[id];
       if (visual) applyVisualToNode(node, visual);
     }
+  }
+
+  function resetElementOverrideStyles(node) {
+    if (!node) return;
+    const props = [
+      "width","height","minWidth","maxWidth","minHeight","maxHeight",
+      "opacity","color","background","borderColor","borderWidth","borderStyle",
+      "borderRadius","padding","margin","fontSize","fontWeight","textAlign",
+      "letterSpacing","lineHeight","boxShadow","filter","overflow"
+    ];
+    props.forEach(prop => { node.style[prop] = ""; });
+    node.style.display = "";
+
+    // Dot owner vars.
+    node.style.removeProperty("--lipex-proof-dot-color");
+    node.style.removeProperty("--lipex-proof-dot-size");
+  }
+
+  function restoreElementOriginal(node) {
+    if (!node) return;
+    if (node.dataset.lipexEditorContentChanged === "1" && node.dataset.lipexOriginalHtml != null) {
+      node.innerHTML = node.dataset.lipexOriginalHtml;
+      delete node.dataset.lipexEditorContentChanged;
+    }
+    if (node.matches("a") && node.dataset.lipexOriginalHref != null) {
+      node.setAttribute("href", node.dataset.lipexOriginalHref);
+    }
+    if (node.matches("img") && node.dataset.lipexOriginalSrc != null) {
+      node.setAttribute("src", node.dataset.lipexOriginalSrc);
+    }
+  }
+
+  function applyElementOverride(node, override) {
+    if (!node) return;
+    resetElementOverrideStyles(node);
+    restoreElementOriginal(node);
+    if (!override || typeof override !== "object") return;
+
+    const px = (v) => v === "" || v == null ? "" : `${Number(v)}px`;
+    if (override.hidden === true) node.style.display = "none";
+    if (override.width != null && override.width !== "") node.style.width = px(override.width);
+    if (override.height != null && override.height !== "") node.style.height = px(override.height);
+    if (override.min_width != null && override.min_width !== "") node.style.minWidth = px(override.min_width);
+    if (override.max_width != null && override.max_width !== "") node.style.maxWidth = px(override.max_width);
+    if (override.opacity != null && override.opacity !== "") node.style.opacity = String(Math.max(0,Math.min(1,Number(override.opacity))));
+    if (override.color) node.style.color = override.color;
+    if (override.background) node.style.background = override.background;
+    if (override.border_color) node.style.borderColor = override.border_color;
+    if (override.border_width != null && override.border_width !== "") {
+      node.style.borderWidth = px(override.border_width);
+      node.style.borderStyle = override.border_style || "solid";
+    }
+    if (override.border_radius != null && override.border_radius !== "") node.style.borderRadius = px(override.border_radius);
+    if (override.padding != null && override.padding !== "") node.style.padding = px(override.padding);
+    if (override.margin != null && override.margin !== "") node.style.margin = px(override.margin);
+    if (override.font_size != null && override.font_size !== "") node.style.fontSize = px(override.font_size);
+    if (override.font_weight) node.style.fontWeight = String(override.font_weight);
+    if (override.text_align) node.style.textAlign = override.text_align;
+    if (override.letter_spacing != null && override.letter_spacing !== "") node.style.letterSpacing = px(override.letter_spacing);
+    if (override.line_height != null && override.line_height !== "") node.style.lineHeight = String(override.line_height);
+    if (override.box_shadow) node.style.boxShadow = override.box_shadow;
+    if (override.blur != null && override.blur !== "") node.style.filter = `blur(${Math.max(0,Number(override.blur))}px)`;
+    if (override.overflow) node.style.overflow = override.overflow;
+
+    if (node.dataset.lipexVisualKind === "dot-owner") {
+      if (override.dot_color) node.style.setProperty("--lipex-proof-dot-color",override.dot_color);
+      if (override.dot_size != null && override.dot_size !== "") node.style.setProperty("--lipex-proof-dot-size",px(override.dot_size));
+    }
+
+    if (node.matches("a") && override.href) node.setAttribute("href",override.href);
+
+    const currentLang = lang();
+    if (override.content && typeof override.content === "object") {
+      const content = override.content[currentLang] ?? override.content.pt ?? override.content.en;
+      if (content != null && content !== "" && node.children.length === 0) {
+        node.textContent = String(content);
+        node.dataset.lipexEditorContentChanged = "1";
+      }
+    }
+
+    if (node.matches("img") && override.asset_url) {
+      node.setAttribute("src",override.asset_url);
+    } else if (override.asset_mode === "image" && override.asset_url) {
+      node.innerHTML = `<img class="lipex-editor-replacement-image" alt="" src="${escapeHtml(override.asset_url)}">`;
+      node.dataset.lipexEditorContentChanged = "1";
+    } else if (override.asset_mode === "text" && override.asset_text != null) {
+      node.textContent = String(override.asset_text);
+      node.dataset.lipexEditorContentChanged = "1";
+    }
+
+    if (override.icon_color) {
+      node.style.color = override.icon_color;
+      node.querySelectorAll("svg path,svg circle,svg line,svg polyline,svg rect").forEach(part => {
+        if (part.getAttribute("fill") && part.getAttribute("fill") !== "none") part.style.fill = override.icon_color;
+        part.style.stroke = override.icon_color;
+      });
+    }
+  }
+
+  function applyElementOverrides(config) {
+    const overrides = config?.element_overrides || {};
+    document.querySelectorAll("[data-lipex-visual-id]").forEach(node => {
+      applyElementOverride(node,overrides[node.dataset.lipexVisualId]);
+    });
+  }
+
+  function captureVisualMeta(node) {
+    if (!node) return null;
+    const computed = getComputedStyle(node);
+    const tag = node.tagName.toLowerCase();
+    return {
+      id:node.dataset.lipexVisualId || "",
+      kind:node.dataset.lipexVisualKind || "element",
+      tag,
+      leafText:node.children.length === 0,
+      text:(node.textContent || "").trim().slice(0,500),
+      href:node.matches("a") ? (node.getAttribute("href") || "") : "",
+      src:node.matches("img") ? (node.getAttribute("src") || "") : "",
+      hasSvg:!!node.querySelector("svg"),
+      hasImage:node.matches("img") || !!node.querySelector("img"),
+      computed:{
+        width:Math.round(node.getBoundingClientRect().width),
+        height:Math.round(node.getBoundingClientRect().height),
+        color:computed.color,
+        background:computed.backgroundColor,
+        borderColor:computed.borderColor,
+        borderRadius:computed.borderRadius,
+        fontSize:computed.fontSize,
+        fontWeight:computed.fontWeight,
+        opacity:computed.opacity
+      }
+    };
   }
 
   function applyConfig(configInput) {
@@ -511,6 +704,7 @@
     applyLinks(config);
     renderCustomElements(config);
     markGenericVisualElements(config);
+    applyElementOverrides(config);
 
     if (editMode) {
       document.body.classList.add("lipex-visual-edit-mode");
@@ -535,18 +729,30 @@
     return activeConfig?.social_items?.find(item => item.id === raw) || null;
   }
 
+  function isRootGameVisualId(id) {
+    if (!id?.startsWith("game:")) return false;
+    const raw = id.slice(5);
+    return !!activeConfig?.catalog_items?.some(item => item.id === raw);
+  }
+
+  function isRootSocialVisualId(id) {
+    if (!id?.startsWith("social:")) return false;
+    const raw = id.slice(7);
+    return !!activeConfig?.social_items?.some(item => item.id === raw);
+  }
+
   function getVisualForId(id) {
-    if (id?.startsWith("game:")) return ensureVisual(findCatalogItem(id)?.visual);
-    if (id?.startsWith("social:")) return ensureVisual(findSocialItem(id)?.visual);
+    if (isRootGameVisualId(id)) return ensureVisual(findCatalogItem(id)?.visual);
+    if (isRootSocialVisualId(id)) return ensureVisual(findSocialItem(id)?.visual);
     return ensureVisual(activeConfig?.visual_positions?.[id]);
   }
 
   function setVisualForId(id, visual) {
     if (!activeConfig || !id) return;
     const next = ensureVisual(visual);
-    if (id.startsWith("game:")) {
+    if (isRootGameVisualId(id)) {
       const item = findCatalogItem(id); if (item) item.visual = next;
-    } else if (id.startsWith("social:")) {
+    } else if (isRootSocialVisualId(id)) {
       const item = findSocialItem(id); if (item) item.visual = next;
     } else {
       activeConfig.visual_positions = activeConfig.visual_positions || {};
@@ -621,7 +827,12 @@
         kind === "game" ? "JOGO" : kind === "social" ? "REDE SOCIAL" : kind === "text" ? "TEXTO" : kind === "button" ? "BOTÃO" : kind === "feature" ? "CAIXA" : "ELEMENTO";
       visualToolbar.querySelector('[data-visual-command="duplicate"]').hidden = !["game","social","custom"].includes(kind);
       visualToolbar.querySelector('[data-visual-command="delete"]').hidden = !["game","social","custom"].includes(kind);
-      parent.postMessage({type:"lipex:visual-select",id:selectedVisualId,kind},"*");
+      parent.postMessage({
+        type:"lipex:visual-select",
+        id:selectedVisualId,
+        kind,
+        meta:captureVisualMeta(target)
+      },"*");
       requestOverlayUpdate();
     }
   }
@@ -669,7 +880,12 @@
       if (!target) return;
       event.preventDefault(); event.stopPropagation();
       selectVisual(target.dataset.lipexVisualId);
-      parent.postMessage({type:"lipex:visual-open-inspector",id:selectedVisualId,kind:target.dataset.lipexVisualKind||"element"},"*");
+      parent.postMessage({
+        type:"lipex:visual-open-inspector",
+        id:selectedVisualId,
+        kind:target.dataset.lipexVisualKind||"element",
+        meta:captureVisualMeta(target)
+      },"*");
     }, true);
 
     document.addEventListener("pointerdown", event => {

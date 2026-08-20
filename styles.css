@@ -1186,3 +1186,24 @@ body.lipex-visual-edit-mode .footer{
 body.lipex-visual-edit-mode [data-lipex-visual-kind="group"]{
   outline-offset:3px;
 }
+
+
+/* =========================================================
+   LipeX Deep Editor v4
+   ========================================================= */
+.hero-proof span::before{
+  background:var(--lipex-proof-dot-color,var(--cyan));
+  width:var(--lipex-proof-dot-size,6px);
+  height:var(--lipex-proof-dot-size,6px);
+}
+.lipex-editor-replacement-image{
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  display:block;
+}
+body.lipex-visual-edit-mode [data-lipex-visual-id]{
+  position:relative;
+}
