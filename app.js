@@ -45,7 +45,7 @@
   const forgotPasswordButton = document.querySelector("#forgot-password-button");
   const toast = document.querySelector("#toast");
   const paymentBanner = document.querySelector("#payment-banner");
-  const buyButtons = [...document.querySelectorAll("[data-buy-product]")];
+  const getBuyButtons = () => [...document.querySelectorAll("[data-buy-product]")];
 
   let mode = "login";
   let currentUser = null;
@@ -56,11 +56,6 @@
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = String(params.get("checkout") || "").trim();
     if (!requestedProduct) return;
-
-    const matchingButton = buyButtons.find(
-      (button) => button.dataset.buyProduct === requestedProduct
-    );
-    if (!matchingButton) return;
 
     pendingDirectCheckout = requestedProduct;
 
@@ -78,11 +73,10 @@
   function continueDirectCheckoutIfReady() {
     if (!pendingDirectCheckout) return;
 
-    const matchingButton = buyButtons.find(
+    const matchingButton = getBuyButtons().find(
       (button) => button.dataset.buyProduct === pendingDirectCheckout
     );
     if (!matchingButton) {
-      pendingDirectCheckout = null;
       return;
     }
 
@@ -481,8 +475,11 @@
     showToast(tr("Você saiu da conta."), "info");
   });
 
-  buyButtons.forEach((button) => {
-    button.addEventListener("click", async () => {
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-buy-product]");
+    if (!button) return;
+    event.preventDefault();
+
       if (!supabaseClient || !configReady) {
         showToast(tr("A conexão do site com o Supabase ainda não foi finalizada."), "error");
         return;
@@ -553,29 +550,31 @@
         showToast(message, message.includes("biblioteca") ? "info" : "error");
         setLoading(button, false);
       }
-    });
+
   });
 
 
-  const clickableGameCards = [...document.querySelectorAll("[data-product-page]")];
-  clickableGameCards.forEach((card) => {
-    const openProduct = () => {
-      const target = card.dataset.productPage;
-      if (target) window.location.assign(target);
-    };
 
-    card.addEventListener("click", (event) => {
-      if (event.target.closest("a,button,input,select,textarea")) return;
-      openProduct();
-    });
-
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openProduct();
-      }
-    });
+  document.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-product-page]");
+    if (!card || event.target.closest("a,button,input,select,textarea")) return;
+    const target = card.dataset.productPage;
+    if (target) window.location.assign(target);
   });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest?.("[data-product-page]");
+    if (!card) return;
+    event.preventDefault();
+    const target = card.dataset.productPage;
+    if (target) window.location.assign(target);
+  });
+
+  window.addEventListener("lipex:siteconfigapplied", () => {
+    continueDirectCheckoutIfReady();
+  });
+
 
   const productMainImage = document.querySelector("#product-main-image");
   const productThumbs = [...document.querySelectorAll("[data-gallery-image]")];

@@ -1099,3 +1099,80 @@ body{
   color:var(--text);
   margin:0;
 }
+
+
+/* =========================================================
+   LipeX Visual Editor v2
+   ========================================================= */
+body.lipex-visual-edit-mode{
+  cursor:default;
+}
+body.lipex-visual-edit-mode [data-lipex-visual-id]{
+  cursor:move!important;
+  outline:1px dashed transparent;
+  transition:outline-color .12s ease, box-shadow .12s ease;
+}
+body.lipex-visual-edit-mode [data-lipex-visual-id]:hover{
+  outline-color:rgba(57,215,255,.55);
+  box-shadow:0 0 0 3px rgba(57,215,255,.07);
+}
+body.lipex-visual-edit-mode [data-lipex-visual-id].lipex-visual-selected{
+  outline-color:#39d7ff;
+}
+#lipex-visual-selection-overlay{
+  position:fixed;
+  pointer-events:none;
+  border:2px solid #39d7ff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.8),0 0 28px rgba(57,215,255,.24);
+  z-index:2147483000;
+  border-radius:7px;
+}
+#lipex-visual-selection-overlay[hidden]{display:none}
+.lipex-visual-selection-label{
+  position:absolute;
+  left:-2px;
+  bottom:calc(100% + 4px);
+  background:#39d7ff;
+  color:#031018;
+  padding:4px 7px;
+  border-radius:6px;
+  font:900 10px/1 system-ui,sans-serif;
+  letter-spacing:.05em;
+  white-space:nowrap;
+}
+.lipex-visual-toolbar{
+  position:absolute;
+  right:-2px;
+  bottom:calc(100% + 4px);
+  display:flex;
+  gap:4px;
+  pointer-events:auto;
+  background:#070b10;
+  border:1px solid #244657;
+  padding:4px;
+  border-radius:7px;
+  box-shadow:0 10px 28px rgba(0,0,0,.45);
+}
+.lipex-visual-toolbar button{
+  border:1px solid #263947;
+  background:#0e1720;
+  color:#d7e8f5;
+  padding:6px 8px;
+  border-radius:5px;
+  font:800 9px/1 system-ui,sans-serif;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.lipex-visual-toolbar button:hover{border-color:#39d7ff;color:#fff}
+.lipex-visual-toolbar button.danger:hover{border-color:#ff657d;color:#ff9caf}
+.lipex-visual-resize-handle{
+  position:absolute;
+  width:14px;height:14px;
+  right:-8px;bottom:-8px;
+  border:2px solid #031018;
+  background:#39d7ff;
+  border-radius:3px;
+  cursor:nwse-resize;
+  pointer-events:auto;
+  box-shadow:0 0 0 1px #39d7ff;
+}
