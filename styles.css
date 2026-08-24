@@ -1359,3 +1359,11 @@ body.lipex-visual-edit-mode [data-lipex-visual-id]{
   .lipex-pass-card{min-height:auto}
   .lipex-pass-card-top p{min-height:0}
 }
+
+
+/* LipeX Pass — BRL Mercado Pago / USD Paddle */
+.lipex-pass-saving-usd,.lipex-pass-note-usd{display:none}
+html[data-currency="usd"] .lipex-pass-saving-brl,
+html[data-currency="usd"] .lipex-pass-note-brl{display:none}
+html[data-currency="usd"] .lipex-pass-saving-usd,
+html[data-currency="usd"] .lipex-pass-note-usd{display:inline}

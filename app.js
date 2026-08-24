@@ -670,7 +670,10 @@
       return;
     }
 
-    if (!initializePaddleSandbox()) {
+    const selectedCurrency = window.LipexCurrency?.getCurrency?.() || "BRL";
+    const isBrazilCheckout = selectedCurrency === "BRL";
+
+    if (!isBrazilCheckout && !initializePaddleSandbox()) {
       showToast(tr("O checkout do LipeX Pass ainda não está disponível nesta página."), "error");
       return;
     }
@@ -678,8 +681,12 @@
     setLoading(button, true, tr("Abrindo checkout..."));
 
     try {
+      const functionName = isBrazilCheckout
+        ? "create-checkout-mercadopago-pass-test"
+        : "create-checkout-paddle-pass";
+
       const { data, error } = await supabaseClient.functions.invoke(
-        "create-checkout-paddle-pass",
+        functionName,
         { body: { plan } }
       );
 
@@ -693,6 +700,15 @@
           }
         } catch (_) {}
         throw new Error(serverMessage || error.message || tr("Falha ao criar checkout."));
+      }
+
+      if (isBrazilCheckout) {
+        const checkoutUrl = String(data?.checkout_url || "");
+        if (!checkoutUrl.startsWith("https://")) {
+          throw new Error(data?.error || tr("O Mercado Pago não retornou um checkout válido."));
+        }
+        window.location.assign(checkoutUrl);
+        return;
       }
 
       const transactionId = String(data?.transaction_id || "");
