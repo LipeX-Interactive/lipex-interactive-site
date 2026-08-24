@@ -1207,3 +1207,155 @@ body.lipex-visual-edit-mode [data-lipex-visual-kind="group"]{
 body.lipex-visual-edit-mode [data-lipex-visual-id]{
   position:relative;
 }
+
+
+/* =========================================================
+   LipeX Pass — Paddle Sandbox
+   ========================================================= */
+.lipex-pass-section{
+  position:relative;
+  padding-top:108px;
+  padding-bottom:108px;
+}
+.lipex-pass-section::before{
+  content:"";
+  position:absolute;
+  inset:7% 10% auto;
+  height:360px;
+  background:radial-gradient(circle at 50% 0%,rgba(32,181,255,.09),transparent 67%);
+  pointer-events:none;
+}
+.lipex-pass-heading{position:relative;z-index:1}
+.lipex-pass-grid{
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  max-width:980px;
+  margin:0 auto;
+}
+.lipex-pass-card{
+  position:relative;
+  min-height:430px;
+  display:flex;
+  flex-direction:column;
+  padding:30px;
+  border:1px solid var(--line);
+  border-radius:var(--lipex-card-radius,18px);
+  background:linear-gradient(180deg,rgba(14,21,29,.96),rgba(8,13,18,.98));
+  box-shadow:0 22px 70px rgba(0,0,0,.2);
+  overflow:hidden;
+}
+.lipex-pass-card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(62,205,255,.5),transparent);
+  opacity:.55;
+}
+.lipex-pass-card.featured{
+  border-color:rgba(51,190,255,.42);
+  box-shadow:0 24px 80px rgba(5,123,184,.14);
+}
+.lipex-pass-badge{
+  position:absolute;
+  right:18px;
+  top:18px;
+  padding:7px 10px;
+  border:1px solid rgba(65,205,255,.28);
+  border-radius:999px;
+  background:rgba(17,161,226,.1);
+  color:#6edcff;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.lipex-pass-kicker{
+  color:var(--cyan);
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.16em;
+}
+.lipex-pass-card h3{
+  margin:13px 0 10px;
+  color:#fff;
+  font-size:30px;
+  letter-spacing:-.035em;
+}
+.lipex-pass-card-top p{
+  margin:0;
+  min-height:50px;
+  color:#8996a7;
+  font-size:13px;
+  line-height:1.65;
+  max-width:430px;
+}
+.lipex-pass-price{
+  display:flex;
+  align-items:flex-end;
+  gap:9px;
+  margin:27px 0 7px;
+}
+.lipex-pass-price strong{
+  color:#fff;
+  font-size:36px;
+  line-height:1;
+  letter-spacing:-.055em;
+}
+.lipex-pass-price span{
+  padding-bottom:3px;
+  color:#748294;
+  font-size:12px;
+  font-weight:700;
+}
+.lipex-pass-saving{
+  min-height:20px;
+  color:#61d7ff;
+  font-size:11px;
+  font-weight:750;
+}
+.lipex-pass-benefits{
+  list-style:none;
+  display:grid;
+  gap:12px;
+  padding:0;
+  margin:25px 0 28px;
+}
+.lipex-pass-benefits li{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#b8c4d1;
+  font-size:12px;
+}
+.lipex-pass-benefits li span{
+  width:20px;
+  height:20px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(31,184,244,.09);
+  border:1px solid rgba(52,203,255,.22);
+  color:#56d8ff;
+  font-size:11px;
+}
+.lipex-pass-benefits b{font-weight:650}
+.lipex-pass-button{
+  width:100%;
+  margin-top:auto;
+}
+.lipex-pass-note{
+  position:relative;
+  z-index:1;
+  margin:17px auto 0;
+  color:#667486;
+  text-align:center;
+  font-size:10.5px;
+}
+@media(max-width:820px){
+  .lipex-pass-grid{grid-template-columns:1fr}
+  .lipex-pass-card{min-height:auto}
+  .lipex-pass-card-top p{min-height:0}
+}

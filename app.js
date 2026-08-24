@@ -51,8 +51,10 @@
   let currentUser = null;
   let supabaseClient = null;
   let pendingDirectCheckout = null;
+  let pendingPassPlan = null;
   let paddleInitialized = false;
   let activePaddleCheckoutButton = null;
+  let activePaddleCheckoutKind = null;
 
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
@@ -73,6 +75,24 @@
   }
 
   function continueDirectCheckoutIfReady() {
+    if (pendingPassPlan) {
+      const matchingPassButton = document.querySelector(`[data-pass-plan="${pendingPassPlan}"]`);
+      if (matchingPassButton) {
+        if (!currentUser) {
+          openAuth("login");
+          setAuthFeedback(
+            tr("Entre na sua conta para continuar. Depois do login, abriremos o checkout automaticamente."),
+            "info"
+          );
+          return;
+        }
+
+        pendingPassPlan = null;
+        window.setTimeout(() => matchingPassButton.click(), 80);
+        return;
+      }
+    }
+
     if (!pendingDirectCheckout) return;
 
     const matchingButton = getBuyButtons().find(
@@ -258,6 +278,11 @@
         title: tr("Pagamento Paddle concluído"),
         text: tr("O Paddle confirmou o checkout. A licença é liberada automaticamente pelo servidor após o webhook de pagamento. Atualize o LipeX Launcher em alguns instantes."),
         type: "success"
+      },
+      paddle_pass_success: {
+        title: tr("LipeX Pass assinado"),
+        text: tr("O Paddle confirmou a assinatura. O acesso aos jogos incluídos será liberado automaticamente no launcher em alguns instantes."),
+        type: "success"
       }
     };
 
@@ -302,13 +327,16 @@
 
           if (eventName === "checkout.completed") {
             const transactionId = String(event?.data?.transaction_id || "");
+            const isPassCheckout = activePaddleCheckoutKind === "pass";
             const url = new URL(window.location.href);
-            url.searchParams.set("payment", "paddle_success");
+            url.searchParams.set("payment", isPassCheckout ? "paddle_pass_success" : "paddle_success");
             if (transactionId) url.searchParams.set("transaction_id", transactionId);
             window.history.replaceState({}, "", url.pathname + url.search + url.hash);
             showPaymentReturnMessage();
             showToast(
-              tr("Pagamento concluído. A licença será liberada automaticamente no launcher."),
+              isPassCheckout
+                ? tr("Assinatura concluída. O acesso será liberado automaticamente no launcher.")
+                : tr("Pagamento concluído. A licença será liberada automaticamente no launcher."),
               "success"
             );
           }
@@ -318,6 +346,7 @@
               setLoading(activePaddleCheckoutButton, false);
               activePaddleCheckoutButton = null;
             }
+            activePaddleCheckoutKind = null;
           }
         }
       });
@@ -591,6 +620,7 @@
           }
 
           activePaddleCheckoutButton = button;
+          activePaddleCheckoutKind = "game";
           window.Paddle.Checkout.open({
             transactionId,
             settings: {
@@ -614,6 +644,79 @@
         setLoading(button, false);
       }
 
+  });
+
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-pass-plan]");
+    if (!button) return;
+    event.preventDefault();
+
+    if (!supabaseClient || !configReady) {
+      showToast(tr("A conexão do site com o Supabase ainda não foi finalizada."), "error");
+      return;
+    }
+
+    const plan = String(button.dataset.passPlan || "").toLowerCase();
+    if (plan !== "monthly" && plan !== "annual") return;
+
+    if (!currentUser) {
+      pendingPassPlan = plan;
+      openAuth("login");
+      setAuthFeedback(
+        tr("Entre na sua conta antes de assinar. O LipeX Pass será vinculado a ela."),
+        "info"
+      );
+      return;
+    }
+
+    if (!initializePaddleSandbox()) {
+      showToast(tr("O checkout do LipeX Pass ainda não está disponível nesta página."), "error");
+      return;
+    }
+
+    setLoading(button, true, tr("Abrindo checkout..."));
+
+    try {
+      const { data, error } = await supabaseClient.functions.invoke(
+        "create-checkout-paddle-pass",
+        { body: { plan } }
+      );
+
+      if (error) {
+        const context = error?.context;
+        let serverMessage = "";
+        try {
+          if (context && typeof context.json === "function") {
+            const parsed = await context.json();
+            serverMessage = parsed?.error || parsed?.details || "";
+          }
+        } catch (_) {}
+        throw new Error(serverMessage || error.message || tr("Falha ao criar checkout."));
+      }
+
+      const transactionId = String(data?.transaction_id || "");
+      if (!transactionId.startsWith("txn_")) {
+        throw new Error(data?.error || tr("O Paddle não retornou uma transação válida."));
+      }
+
+      activePaddleCheckoutButton = button;
+      activePaddleCheckoutKind = "pass";
+      window.Paddle.Checkout.open({
+        transactionId,
+        settings: {
+          displayMode: "overlay",
+          theme: "dark",
+          locale: window.LipexI18n?.getLanguage?.() === "en" ? "en" : "pt"
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      const message = String(error?.message || tr("Não foi possível abrir o checkout."));
+      showToast(message, message.includes("já possui") ? "info" : "error");
+      setLoading(button, false);
+      activePaddleCheckoutKind = null;
+    }
   });
 
 
