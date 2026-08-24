@@ -1,14 +1,17 @@
-// Configuração pública do Supabase para o site LipeX Interactive.
-// A Publishable Key (ou a legacy anon key) é feita para uso no frontend.
-// NUNCA coloque service_role, secret key ou tokens do Mercado Pago aqui.
+// Configuração pública do Supabase e Paddle para o site LipeX Interactive.
+// Publishable/client-side tokens são próprios para uso no frontend.
+// NUNCA coloque service_role, API keys secretas, webhook secrets ou tokens do Mercado Pago aqui.
 window.LIPEX_CONFIG = {
   SUPABASE_URL: "https://narcpzwhkrmegaxxovls.supabase.co",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_rJlH3EpCeGmmfuuE6TT4wQ_nEZPnAxG",
 
-  // Segurança do checkout internacional no site público:
-  // "disabled" = USD aparece no site, mas a compra fica bloqueada.
-  // "prod" = USD usa create-checkout-stripe-prod.
-  // Em localhost/127.0.0.1 o site usa automaticamente o Stripe TEST,
-  // independentemente deste valor, para continuar permitindo testes locais.
+  // Paddle Sandbox: client-side token público, usado somente pelo Paddle.js.
+  PADDLE_SANDBOX_CLIENT_TOKEN: "test_704d5c3415493dafd10b8c9fa90",
+
+  // Enquanto estivermos testando: BRL continua no Mercado Pago e USD abre
+  // o checkout Paddle Sandbox via create-checkout-paddle.
+  PADDLE_CHECKOUT_MODE: "sandbox",
+
+  // Mantido apenas como compatibilidade com builds anteriores.
   STRIPE_CHECKOUT_MODE: "disabled"
 };

@@ -51,6 +51,8 @@
   let currentUser = null;
   let supabaseClient = null;
   let pendingDirectCheckout = null;
+  let paddleInitialized = false;
+  let activePaddleCheckoutButton = null;
 
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
@@ -251,6 +253,11 @@
         title: tr("Checkout Stripe cancelado"),
         text: tr("A compra não foi concluída. Nenhuma licença foi liberada e você pode tentar novamente quando quiser."),
         type: "error"
+      },
+      paddle_success: {
+        title: tr("Pagamento Paddle concluído"),
+        text: tr("O Paddle confirmou o checkout. A licença é liberada automaticamente pelo servidor após o webhook de pagamento. Atualize o LipeX Launcher em alguns instantes."),
+        type: "success"
       }
     };
 
@@ -265,8 +272,61 @@
       const url = new URL(window.location.href);
       url.searchParams.delete("payment");
       url.searchParams.delete("session_id");
+      url.searchParams.delete("transaction_id");
       window.history.replaceState({}, "", url.pathname + url.search + url.hash);
     });
+  }
+
+  function initializePaddleSandbox() {
+    if (paddleInitialized) return true;
+
+    const mode = String(config.PADDLE_CHECKOUT_MODE || "disabled").toLowerCase();
+    const token = String(config.PADDLE_SANDBOX_CLIENT_TOKEN || "").trim();
+
+    if (mode !== "sandbox") return false;
+    if (!token.startsWith("test_")) {
+      console.error("LipeX: PADDLE_SANDBOX_CLIENT_TOKEN não configurado.");
+      return false;
+    }
+    if (!window.Paddle) {
+      console.error("LipeX: Paddle.js não carregou.");
+      return false;
+    }
+
+    try {
+      window.Paddle.Environment.set("sandbox");
+      window.Paddle.Initialize({
+        token,
+        eventCallback(event) {
+          const eventName = String(event?.name || "");
+
+          if (eventName === "checkout.completed") {
+            const transactionId = String(event?.data?.transaction_id || "");
+            const url = new URL(window.location.href);
+            url.searchParams.set("payment", "paddle_success");
+            if (transactionId) url.searchParams.set("transaction_id", transactionId);
+            window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+            showPaymentReturnMessage();
+            showToast(
+              tr("Pagamento concluído. A licença será liberada automaticamente no launcher."),
+              "success"
+            );
+          }
+
+          if (eventName === "checkout.closed" || eventName === "checkout.completed") {
+            if (activePaddleCheckoutButton) {
+              setLoading(activePaddleCheckoutButton, false);
+              activePaddleCheckoutButton = null;
+            }
+          }
+        }
+      });
+      paddleInitialized = true;
+      return true;
+    } catch (error) {
+      console.error("LipeX: falha ao inicializar Paddle Sandbox:", error);
+      return false;
+    }
   }
 
   if (!configReady) {
@@ -496,30 +556,15 @@
 
       try {
         const selectedCurrency = window.LipexCurrency?.getCurrency?.() || "BRL";
-        let checkoutFunction = "create-checkout-prod";
+        const isPaddle = selectedCurrency === "USD";
+        const checkoutFunction = isPaddle
+          ? "create-checkout-paddle"
+          : "create-checkout-prod";
 
-        if (selectedCurrency === "USD") {
-          const host = String(window.location.hostname || "").toLowerCase();
-          const isLocalTest = host === "localhost" || host === "127.0.0.1";
-
-          if (isLocalTest) {
-            checkoutFunction = "create-checkout-stripe-test";
-          } else {
-            const stripeMode = String(
-              window.LIPEX_CONFIG?.STRIPE_CHECKOUT_MODE || "disabled"
-            ).toLowerCase();
-
-            if (stripeMode !== "prod") {
-              showToast(
-                tr("Os pagamentos internacionais estão temporariamente indisponíveis. Tente novamente em breve."),
-                "info"
-              );
-              setLoading(button, false);
-              return;
-            }
-
-            checkoutFunction = "create-checkout-stripe-prod";
-          }
+        if (isPaddle && !initializePaddleSandbox()) {
+          throw new Error(
+            tr("O checkout internacional de teste ainda não está disponível nesta página.")
+          );
         }
 
         const { data, error } = await supabaseClient.functions.invoke(
@@ -537,6 +582,24 @@
             }
           } catch (_) {}
           throw new Error(serverMessage || error.message || tr("Falha ao criar checkout."));
+        }
+
+        if (isPaddle) {
+          const transactionId = String(data?.transaction_id || "");
+          if (!transactionId.startsWith("txn_")) {
+            throw new Error(data?.error || tr("O Paddle não retornou uma transação válida."));
+          }
+
+          activePaddleCheckoutButton = button;
+          window.Paddle.Checkout.open({
+            transactionId,
+            settings: {
+              displayMode: "overlay",
+              theme: "dark",
+              locale: window.LipexI18n?.getLanguage?.() === "en" ? "en" : "pt"
+            }
+          });
+          return;
         }
 
         if (!data?.checkout_url) {
