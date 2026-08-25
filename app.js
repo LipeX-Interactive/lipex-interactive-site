@@ -926,15 +926,31 @@
       return;
     }
 
-    const { data } = await supabaseClient.auth.getSession();
-    updateAccountUI(data?.session?.user || null);
-    continueDirectCheckoutIfReady();
+   const { data } =
+  await supabaseClient.auth.getSession();
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
-      updateAccountUI(session?.user || null);
-      if (session?.user) continueDirectCheckoutIfReady();
-    });
+updateAccountUI(
+  data?.session?.user || null
+);
+
+if (currentUser) {
+  await syncMercadoPagoPassIfNeeded();
+}
+
+continueDirectCheckoutIfReady();
+
+supabaseClient.auth.onAuthStateChange(
+  (_event, session) => {
+    updateAccountUI(
+      session?.user || null
+    );
+
+    if (session?.user) {
+      syncMercadoPagoPassIfNeeded();
+      continueDirectCheckoutIfReady();
+    }
   }
+);
 
   initializeAuth();
 })();
