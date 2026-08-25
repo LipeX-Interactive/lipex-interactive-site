@@ -57,6 +57,7 @@
   let activePaddleCheckoutKind = null;
   let mercadoPagoPassSyncPromise = null;
   let mercadoPagoPassSyncUserId = null;
+
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = String(params.get("checkout") || "").trim();
@@ -228,140 +229,7 @@
     }
   }
 
-  function updateAccountUI(user) {async function syncMercadoPagoPassIfNeeded() {
-  if (!supabaseClient || !currentUser?.id) return null;
-
-  if (
-    mercadoPagoPassSyncPromise &&
-    mercadoPagoPassSyncUserId === currentUser.id
-  ) {
-    return mercadoPagoPassSyncPromise;
-  }
-
-  mercadoPagoPassSyncUserId = currentUser.id;
-
-  mercadoPagoPassSyncPromise = (async () => {
-    const params = new URLSearchParams(window.location.search);
-
-    const isMercadoPagoReturn =
-      params.get("subscription") === "mercadopago_test_return";
-
-    try {
-      const { data, error } =
-        await supabaseClient.functions.invoke(
-          "sync-mercadopago-pass-test",
-          {
-            body: {},
-          }
-        );
-
-      if (error) {
-        let serverMessage = "";
-
-        try {
-          const context = error?.context;
-
-          if (
-            context &&
-            typeof context.json === "function"
-          ) {
-            const parsed =
-              await context.json();
-
-            serverMessage =
-              parsed?.error || "";
-          }
-        } catch (_) {}
-
-        if (isMercadoPagoReturn) {
-          showToast(
-            serverMessage ||
-              tr(
-                "A assinatura foi enviada, mas ainda não conseguimos sincronizá-la."
-              ),
-            "error"
-          );
-        }
-
-        return null;
-      }
-
-      if (isMercadoPagoReturn) {
-        const status =
-          String(data?.status || "");
-
-        if (status === "active") {
-          showToast(
-            tr(
-              "LipeX Pass ativado. Os jogos já podem ser liberados no launcher."
-            ),
-            "success"
-          );
-        } else if (
-          status === "pending"
-        ) {
-          showToast(
-            tr(
-              "Sua assinatura ainda está pendente no Mercado Pago."
-            ),
-            "info"
-          );
-        } else if (status) {
-          showToast(
-            tr(
-              "Status do LipeX Pass atualizado."
-            ),
-            "info"
-          );
-        }
-      }
-
-      return data || null;
-    } catch (error) {
-      console.error(
-        "LipeX: falha sincronizando Mercado Pago Pass",
-        error
-      );
-
-      if (isMercadoPagoReturn) {
-        showToast(
-          tr(
-            "A assinatura foi enviada, mas ainda não conseguimos sincronizá-la."
-          ),
-          "error"
-        );
-      }
-
-      return null;
-    } finally {
-      if (isMercadoPagoReturn) {
-        const url =
-          new URL(
-            window.location.href
-          );
-
-        url.searchParams.delete(
-          "subscription"
-        );
-
-        window.history.replaceState(
-          {},
-          "",
-          url.pathname +
-            url.search +
-            url.hash
-        );
-      }
-    }
-  })();
-
-  try {
-    return await mercadoPagoPassSyncPromise;
-  } finally {
-    mercadoPagoPassSyncPromise =
-      null;
-  }
-}
+  function updateAccountUI(user) {
     currentUser = user || null;
     if (currentUser) {
       accountButton.textContent = tr("Minha conta");
@@ -374,6 +242,155 @@
       accountButton.classList.remove("logged-in");
       accountEmail.textContent = "";
       accountMenu.hidden = true;
+    }
+  }
+
+  async function callMercadoPagoPassSync() {
+    if (!supabaseClient || !currentUser?.id) {
+      return null;
+    }
+
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) {
+      console.error(
+        "LipeX: erro lendo sessão para sincronizar Pass",
+        sessionError
+      );
+      return null;
+    }
+
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) return null;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const response = await fetch(
+        `${config.SUPABASE_URL}/functions/v1/sync-mercadopago-pass-test`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+            "apikey": config.SUPABASE_PUBLISHABLE_KEY
+          },
+          body: "{}",
+          signal: controller.signal
+        }
+      );
+
+      const raw = await response.text();
+      let payload = null;
+
+      try {
+        payload = raw ? JSON.parse(raw) : {};
+      } catch (_) {
+        payload = { error: raw || `HTTP ${response.status}` };
+      }
+
+      if (!response.ok) {
+        console.error(
+          "LipeX: sync Mercado Pago falhou",
+          response.status,
+          payload
+        );
+        throw new Error(payload?.error || `HTTP ${response.status}`);
+      }
+
+      console.log("LipeX Pass sincronizado:", payload);
+      return payload;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        console.error("LipeX: timeout sincronizando Mercado Pago Pass");
+      } else {
+        console.error("LipeX: falha sincronizando Mercado Pago Pass", error);
+      }
+      return null;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  }
+
+  function wait(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+
+  async function syncMercadoPagoPassIfNeeded() {
+    if (!supabaseClient || !currentUser?.id) {
+      return null;
+    }
+
+    if (
+      mercadoPagoPassSyncPromise &&
+      mercadoPagoPassSyncUserId === currentUser.id
+    ) {
+      return mercadoPagoPassSyncPromise;
+    }
+
+    mercadoPagoPassSyncUserId = currentUser.id;
+
+    mercadoPagoPassSyncPromise = (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const isMercadoPagoReturn =
+        params.get("subscription") === "mercadopago_test_return";
+
+      // Em abertura normal, faz 1 consulta. No retorno do Mercado Pago,
+      // repete por alguns segundos para absorver o atraso de autorização.
+      const delays = isMercadoPagoReturn ? [0, 1500, 3000, 5000] : [0];
+      let result = null;
+
+      for (const delay of delays) {
+        if (delay > 0) await wait(delay);
+        result = await callMercadoPagoPassSync();
+
+        if (!result) continue;
+        const status = String(result?.status || "");
+        if (status && status !== "pending") break;
+      }
+
+      if (isMercadoPagoReturn) {
+        const status = String(result?.status || "");
+
+        if (status === "active") {
+          showToast(
+            tr("LipeX Pass ativado. Seus jogos já estão disponíveis no launcher."),
+            "success"
+          );
+        } else if (status === "pending") {
+          showToast(
+            tr("Seu LipeX Pass ainda está sendo confirmado pelo Mercado Pago."),
+            "info"
+          );
+        } else if (status === "paused") {
+          showToast(tr("Seu LipeX Pass está pausado."), "info");
+        } else if (status === "canceled") {
+          showToast(tr("Seu LipeX Pass foi cancelado."), "info");
+        } else if (!result) {
+          showToast(
+            tr("Não conseguimos verificar o LipeX Pass agora. Tente atualizar a página."),
+            "error"
+          );
+        }
+
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("subscription");
+        window.history.replaceState(
+          {},
+          "",
+          cleanUrl.pathname + cleanUrl.search + cleanUrl.hash
+        );
+      }
+
+      return result;
+    })();
+
+    try {
+      return await mercadoPagoPassSyncPromise;
+    } finally {
+      mercadoPagoPassSyncPromise = null;
     }
   }
 
@@ -926,31 +943,19 @@
       return;
     }
 
-   const { data } =
-  await supabaseClient.auth.getSession();
+    const { data } = await supabaseClient.auth.getSession();
+    updateAccountUI(data?.session?.user || null);
+    if (currentUser) await syncMercadoPagoPassIfNeeded();
+    continueDirectCheckoutIfReady();
 
-updateAccountUI(
-  data?.session?.user || null
-);
-
-if (currentUser) {
-  await syncMercadoPagoPassIfNeeded();
-}
-
-continueDirectCheckoutIfReady();
-
-supabaseClient.auth.onAuthStateChange(
-  (_event, session) => {
-    updateAccountUI(
-      session?.user || null
-    );
-
-    if (session?.user) {
-      syncMercadoPagoPassIfNeeded();
-      continueDirectCheckoutIfReady();
-    }
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+      updateAccountUI(session?.user || null);
+      if (session?.user) {
+        syncMercadoPagoPassIfNeeded();
+        continueDirectCheckoutIfReady();
+      }
+    });
   }
-);
 
   initializeAuth();
 })();
