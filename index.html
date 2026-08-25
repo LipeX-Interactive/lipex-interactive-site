@@ -309,6 +309,32 @@
 <h2 data-i18n="Gerenciar conta" id="account-settings-title">Gerenciar conta</h2>
 <p data-i18n="Altere sua senha ou gerencie sua conta LipeX.">Altere sua senha ou gerencie sua conta LipeX.</p>
 <div class="account-settings-email"><small data-i18n="E-mail da conta">E-mail da conta</small><strong id="settings-account-email"></strong></div>
+<section class="settings-section pass-account-section" id="pass-account-section">
+<div class="settings-section-heading"><div><span data-i18n="LIPEX PASS">LIPEX PASS</span><h3 data-i18n="Sua assinatura">Sua assinatura</h3></div></div>
+<div class="pass-account-panel" id="pass-account-panel" aria-live="polite">
+<div class="pass-account-loading" id="pass-account-loading" data-i18n="Carregando assinatura...">Carregando assinatura...</div>
+<div class="pass-account-empty" id="pass-account-empty" hidden>
+<strong data-i18n="Nenhum LipeX Pass ativo">Nenhum LipeX Pass ativo</strong>
+<p data-i18n="Assine o LipeX Pass para liberar os jogos incluídos no catálogo.">Assine o LipeX Pass para liberar os jogos incluídos no catálogo.</p>
+<button class="settings-pass-secondary" id="pass-view-plans" type="button" data-i18n="Ver planos">Ver planos</button>
+</div>
+<div class="pass-account-details" id="pass-account-details" hidden>
+<div class="pass-account-status-row"><span class="pass-account-status" id="pass-account-status">—</span><span class="pass-account-provider" id="pass-account-provider">—</span></div>
+<div class="pass-account-grid">
+<div><small data-i18n="Plano">Plano</small><strong id="pass-account-plan">—</strong></div>
+<div><small data-i18n="Valor">Valor</small><strong id="pass-account-price">—</strong></div>
+<div><small data-i18n="Próxima cobrança">Próxima cobrança</small><strong id="pass-account-renewal">—</strong></div>
+</div>
+<p class="pass-account-note" id="pass-account-note"></p>
+<div class="pass-account-actions" id="pass-account-actions">
+<button class="settings-pass-secondary" id="pass-pause-button" data-pass-action="pause" type="button" data-i18n="Pausar assinatura">Pausar assinatura</button>
+<button class="settings-pass-primary" id="pass-resume-button" data-pass-action="resume" type="button" data-i18n="Reativar assinatura" hidden>Reativar assinatura</button>
+<button class="settings-pass-danger" id="pass-cancel-button" data-pass-action="cancel" type="button" data-i18n="Cancelar assinatura">Cancelar assinatura</button>
+</div>
+<p class="auth-feedback settings-feedback pass-account-feedback" id="pass-account-feedback"></p>
+</div>
+</div>
+</section>
 <section class="settings-section">
 <div class="settings-section-heading"><div><span data-i18n="SEGURANÇA">SEGURANÇA</span><h3 data-i18n="Alterar senha">Alterar senha</h3></div></div>
 <form id="change-password-form">
@@ -345,6 +371,6 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script src="i18n.js"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260825-mp-pass-auto-1"></script>
+<script src="i18n.js"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260825-pass-account-1"></script>
 </body>
 </html>

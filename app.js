@@ -16,6 +16,20 @@
   const accountSettingsModal = document.querySelector("#account-settings-modal");
   const accountSettingsClose = document.querySelector("#account-settings-close");
   const settingsAccountEmail = document.querySelector("#settings-account-email");
+  const passAccountLoading = document.querySelector("#pass-account-loading");
+  const passAccountEmpty = document.querySelector("#pass-account-empty");
+  const passAccountDetails = document.querySelector("#pass-account-details");
+  const passAccountStatus = document.querySelector("#pass-account-status");
+  const passAccountProvider = document.querySelector("#pass-account-provider");
+  const passAccountPlan = document.querySelector("#pass-account-plan");
+  const passAccountPrice = document.querySelector("#pass-account-price");
+  const passAccountRenewal = document.querySelector("#pass-account-renewal");
+  const passAccountNote = document.querySelector("#pass-account-note");
+  const passAccountFeedback = document.querySelector("#pass-account-feedback");
+  const passPauseButton = document.querySelector("#pass-pause-button");
+  const passResumeButton = document.querySelector("#pass-resume-button");
+  const passCancelButton = document.querySelector("#pass-cancel-button");
+  const passViewPlansButton = document.querySelector("#pass-view-plans");
   const changePasswordForm = document.querySelector("#change-password-form");
   const currentPasswordInput = document.querySelector("#current-password");
   const newPasswordInput = document.querySelector("#new-password");
@@ -57,6 +71,9 @@
   let activePaddleCheckoutKind = null;
   let mercadoPagoPassSyncPromise = null;
   let mercadoPagoPassSyncUserId = null;
+  let lastMercadoPagoPassSyncAt = 0;
+  let lastMercadoPagoPassSyncResult = null;
+  let passAccountLoadPromise = null;
 
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
@@ -199,6 +216,8 @@
     if (deleteConfirmation) deleteConfirmation.hidden = true;
     setSettingsFeedback(passwordFeedback);
     setSettingsFeedback(deleteFeedback);
+    setSettingsFeedback(passAccountFeedback);
+    refreshPassAccount({ sync: true }).catch(() => {});
   }
 
   function closeAccountSettings() {
@@ -318,9 +337,24 @@
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 
-  async function syncMercadoPagoPassIfNeeded() {
+  async function syncMercadoPagoPassIfNeeded(options = {}) {
     if (!supabaseClient || !currentUser?.id) {
       return null;
+    }
+
+    const force = options?.force === true;
+    const params = new URLSearchParams(window.location.search);
+    const isMercadoPagoReturn =
+      params.get("subscription") === "mercadopago_test_return";
+
+    const now = Date.now();
+    if (
+      !force &&
+      !isMercadoPagoReturn &&
+      lastMercadoPagoPassSyncResult &&
+      now - lastMercadoPagoPassSyncAt < 30000
+    ) {
+      return lastMercadoPagoPassSyncResult;
     }
 
     if (
@@ -333,12 +367,6 @@
     mercadoPagoPassSyncUserId = currentUser.id;
 
     mercadoPagoPassSyncPromise = (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const isMercadoPagoReturn =
-        params.get("subscription") === "mercadopago_test_return";
-
-      // Em abertura normal, faz 1 consulta. No retorno do Mercado Pago,
-      // repete por alguns segundos para absorver o atraso de autorização.
       const delays = isMercadoPagoReturn ? [0, 1500, 3000, 5000] : [0];
       let result = null;
 
@@ -349,6 +377,11 @@
         if (!result) continue;
         const status = String(result?.status || "");
         if (status && status !== "pending") break;
+      }
+
+      if (result) {
+        lastMercadoPagoPassSyncAt = Date.now();
+        lastMercadoPagoPassSyncResult = result;
       }
 
       if (isMercadoPagoReturn) {
@@ -391,6 +424,209 @@
       return await mercadoPagoPassSyncPromise;
     } finally {
       mercadoPagoPassSyncPromise = null;
+    }
+  }
+
+  async function callAuthedEdgeFunction(functionName, body = {}) {
+    if (!supabaseClient || !currentUser?.id) {
+      throw new Error("Usuário não autenticado.");
+    }
+
+    const { data: sessionData, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+    const accessToken = sessionData?.session?.access_token;
+    if (!accessToken) throw new Error("Sessão expirada.");
+
+    const response = await fetch(
+      `${config.SUPABASE_URL}/functions/v1/${functionName}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+          "apikey": config.SUPABASE_PUBLISHABLE_KEY
+        },
+        body: JSON.stringify(body || {})
+      }
+    );
+
+    const raw = await response.text();
+    let payload = {};
+    try {
+      payload = raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      payload = { error: raw || `HTTP ${response.status}` };
+    }
+
+    if (!response.ok) {
+      throw new Error(payload?.error || payload?.details || `HTTP ${response.status}`);
+    }
+
+    return payload;
+  }
+
+  function passStatusLabel(status) {
+    const labels = {
+      active: "ATIVO",
+      trialing: "ATIVO",
+      paused: "PAUSADO",
+      pending: "PENDENTE",
+      past_due: "EM ATRASO",
+      canceled: "CANCELADO",
+      cancelled: "CANCELADO"
+    };
+    return tr(labels[String(status || "").toLowerCase()] || String(status || "—").toUpperCase());
+  }
+
+  function passPlanLabel(plan) {
+    return String(plan || "").toLowerCase() === "annual" ? tr("Anual") : tr("Mensal");
+  }
+
+  function passPriceLabel(subscription) {
+    const provider = String(subscription?.provider || "");
+    const plan = String(subscription?.plan || "monthly");
+    if (provider === "mercadopago") {
+      return plan === "annual" ? "R$ 509,90/ano" : "R$ 54,90/mês";
+    }
+    if (provider === "paddle") {
+      return plan === "annual" ? "US$ 79,99/ano" : "US$ 9,99/mês";
+    }
+    return "—";
+  }
+
+  function formatPassDate(value) {
+    if (!value) return tr("Sem data");
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return tr("Sem data");
+    return new Intl.DateTimeFormat(
+      window.LipexI18n?.getLanguage?.() === "en" ? "en-US" : "pt-BR",
+      { day: "2-digit", month: "2-digit", year: "numeric" }
+    ).format(date);
+  }
+
+  function renderPassAccount(subscription) {
+    if (passAccountLoading) passAccountLoading.hidden = true;
+    setSettingsFeedback(passAccountFeedback);
+
+    if (!subscription) {
+      if (passAccountEmpty) passAccountEmpty.hidden = false;
+      if (passAccountDetails) passAccountDetails.hidden = true;
+      return;
+    }
+
+    if (passAccountEmpty) passAccountEmpty.hidden = true;
+    if (passAccountDetails) passAccountDetails.hidden = false;
+
+    const status = String(subscription.status || "pending").toLowerCase();
+    const provider = String(subscription.provider || "");
+
+    if (passAccountStatus) {
+      passAccountStatus.textContent = passStatusLabel(status);
+      passAccountStatus.dataset.status = status;
+    }
+    if (passAccountProvider) {
+      passAccountProvider.textContent = provider === "mercadopago" ? tr("Mercado Pago") : provider === "paddle" ? tr("Paddle") : provider;
+    }
+    if (passAccountPlan) passAccountPlan.textContent = passPlanLabel(subscription.plan);
+    if (passAccountPrice) passAccountPrice.textContent = passPriceLabel(subscription);
+    if (passAccountRenewal) {
+      passAccountRenewal.textContent = status === "active" || status === "past_due"
+        ? formatPassDate(subscription.current_period_ends_at)
+        : "—";
+    }
+
+    const canManageMp = provider === "mercadopago" && subscription.environment === "test";
+    if (passPauseButton) {
+      passPauseButton.hidden = !(canManageMp && status === "active");
+    }
+    if (passResumeButton) {
+      passResumeButton.hidden = !(canManageMp && status === "paused");
+    }
+    if (passCancelButton) {
+      passCancelButton.hidden = !(canManageMp && ["active", "paused", "pending"].includes(status));
+    }
+    if (passAccountNote) {
+      passAccountNote.textContent = canManageMp
+        ? tr("Gerenciamento disponível pelo site para assinaturas Mercado Pago de teste.")
+        : provider === "paddle"
+          ? tr("Esta assinatura é gerenciada pelo Paddle. O gerenciamento pelo site será habilitado em seguida.")
+          : "";
+    }
+  }
+
+  async function refreshPassAccount(options = {}) {
+    if (!currentUser?.id) return null;
+    if (passAccountLoadPromise) return passAccountLoadPromise;
+
+    passAccountLoadPromise = (async () => {
+      if (passAccountLoading) passAccountLoading.hidden = false;
+      try {
+        if (options?.sync !== false) {
+          await syncMercadoPagoPassIfNeeded({ force: options?.forceSync === true });
+        }
+        const data = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
+        renderPassAccount(data?.primary || null);
+        return data;
+      } catch (error) {
+        console.error("LipeX: falha carregando Pass da conta", error);
+        if (passAccountLoading) passAccountLoading.hidden = true;
+        renderPassAccount(null);
+        setSettingsFeedback(
+          passAccountFeedback,
+          String(error?.message || tr("Não foi possível gerenciar sua assinatura agora.")),
+          "error"
+        );
+        return null;
+      }
+    })();
+
+    try {
+      return await passAccountLoadPromise;
+    } finally {
+      passAccountLoadPromise = null;
+    }
+  }
+
+  async function managePassAccount(action, button) {
+    if (!currentUser?.id) return;
+    if (action === "cancel") {
+      const confirmed = window.confirm(
+        tr("Tem certeza de que deseja cancelar o LipeX Pass? O acesso aos jogos do Pass será removido.")
+      );
+      if (!confirmed) return;
+    }
+
+    const loadingText =
+      action === "pause" ? tr("Pausando assinatura...") :
+      action === "resume" ? tr("Reativando assinatura...") :
+      tr("Cancelando assinatura...");
+
+    setLoading(button, true, loadingText);
+    setSettingsFeedback(passAccountFeedback);
+
+    try {
+      await callAuthedEdgeFunction("manage-mercadopago-pass-test", { action });
+      await syncMercadoPagoPassIfNeeded({ force: true });
+      await refreshPassAccount({ sync: false });
+
+      const message =
+        action === "pause" ? tr("Assinatura pausada. Os acessos do Pass foram atualizados.") :
+        action === "resume" ? tr("Assinatura reativada. Os jogos do Pass foram liberados novamente.") :
+        tr("Assinatura cancelada. Os acessos do Pass foram encerrados.");
+
+      setSettingsFeedback(passAccountFeedback, message, "success");
+      showToast(message, "success");
+    } catch (error) {
+      console.error("LipeX: falha gerenciando Pass", error);
+      setSettingsFeedback(
+        passAccountFeedback,
+        String(error?.message || tr("Não foi possível gerenciar sua assinatura agora.")),
+        "error"
+      );
+    } finally {
+      setLoading(button, false);
     }
   }
 
@@ -640,6 +876,15 @@
   accountSettingsClose?.addEventListener("click", closeAccountSettings);
   accountSettingsModal?.addEventListener("click", (event) => {
     if (event.target === accountSettingsModal) closeAccountSettings();
+  });
+
+
+  passPauseButton?.addEventListener("click", () => managePassAccount("pause", passPauseButton));
+  passResumeButton?.addEventListener("click", () => managePassAccount("resume", passResumeButton));
+  passCancelButton?.addEventListener("click", () => managePassAccount("cancel", passCancelButton));
+  passViewPlansButton?.addEventListener("click", () => {
+    closeAccountSettings();
+    document.querySelector("#lipex-pass")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   showDeleteAccountButton?.addEventListener("click", () => {
@@ -934,6 +1179,9 @@
   window.addEventListener("lipex:languagechange", () => {
     setAuthMode(mode);
     updateAccountUI(currentUser);
+    if (accountSettingsModal?.classList.contains("open") && currentUser) {
+      refreshPassAccount({ sync: false }).catch(() => {});
+    }
   });
 
   async function initializeAuth() {
@@ -948,10 +1196,12 @@
     if (currentUser) await syncMercadoPagoPassIfNeeded();
     continueDirectCheckoutIfReady();
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAccountUI(session?.user || null);
       if (session?.user) {
-        syncMercadoPagoPassIfNeeded();
+        if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+          syncMercadoPagoPassIfNeeded().catch(() => {});
+        }
         continueDirectCheckoutIfReady();
       }
     });
