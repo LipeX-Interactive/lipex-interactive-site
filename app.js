@@ -55,7 +55,8 @@
   let paddleInitialized = false;
   let activePaddleCheckoutButton = null;
   let activePaddleCheckoutKind = null;
-
+  let mercadoPagoPassSyncPromise = null;
+  let mercadoPagoPassSyncUserId = null;
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = String(params.get("checkout") || "").trim();
@@ -227,7 +228,140 @@
     }
   }
 
-  function updateAccountUI(user) {
+  function updateAccountUI(user) {async function syncMercadoPagoPassIfNeeded() {
+  if (!supabaseClient || !currentUser?.id) return null;
+
+  if (
+    mercadoPagoPassSyncPromise &&
+    mercadoPagoPassSyncUserId === currentUser.id
+  ) {
+    return mercadoPagoPassSyncPromise;
+  }
+
+  mercadoPagoPassSyncUserId = currentUser.id;
+
+  mercadoPagoPassSyncPromise = (async () => {
+    const params = new URLSearchParams(window.location.search);
+
+    const isMercadoPagoReturn =
+      params.get("subscription") === "mercadopago_test_return";
+
+    try {
+      const { data, error } =
+        await supabaseClient.functions.invoke(
+          "sync-mercadopago-pass-test",
+          {
+            body: {},
+          }
+        );
+
+      if (error) {
+        let serverMessage = "";
+
+        try {
+          const context = error?.context;
+
+          if (
+            context &&
+            typeof context.json === "function"
+          ) {
+            const parsed =
+              await context.json();
+
+            serverMessage =
+              parsed?.error || "";
+          }
+        } catch (_) {}
+
+        if (isMercadoPagoReturn) {
+          showToast(
+            serverMessage ||
+              tr(
+                "A assinatura foi enviada, mas ainda não conseguimos sincronizá-la."
+              ),
+            "error"
+          );
+        }
+
+        return null;
+      }
+
+      if (isMercadoPagoReturn) {
+        const status =
+          String(data?.status || "");
+
+        if (status === "active") {
+          showToast(
+            tr(
+              "LipeX Pass ativado. Os jogos já podem ser liberados no launcher."
+            ),
+            "success"
+          );
+        } else if (
+          status === "pending"
+        ) {
+          showToast(
+            tr(
+              "Sua assinatura ainda está pendente no Mercado Pago."
+            ),
+            "info"
+          );
+        } else if (status) {
+          showToast(
+            tr(
+              "Status do LipeX Pass atualizado."
+            ),
+            "info"
+          );
+        }
+      }
+
+      return data || null;
+    } catch (error) {
+      console.error(
+        "LipeX: falha sincronizando Mercado Pago Pass",
+        error
+      );
+
+      if (isMercadoPagoReturn) {
+        showToast(
+          tr(
+            "A assinatura foi enviada, mas ainda não conseguimos sincronizá-la."
+          ),
+          "error"
+        );
+      }
+
+      return null;
+    } finally {
+      if (isMercadoPagoReturn) {
+        const url =
+          new URL(
+            window.location.href
+          );
+
+        url.searchParams.delete(
+          "subscription"
+        );
+
+        window.history.replaceState(
+          {},
+          "",
+          url.pathname +
+            url.search +
+            url.hash
+        );
+      }
+    }
+  })();
+
+  try {
+    return await mercadoPagoPassSyncPromise;
+  } finally {
+    mercadoPagoPassSyncPromise =
+      null;
+  }
+}
     currentUser = user || null;
     if (currentUser) {
       accountButton.textContent = tr("Minha conta");
