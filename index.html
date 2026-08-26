@@ -319,17 +319,15 @@
 <button class="settings-pass-secondary" id="pass-view-plans" type="button" data-i18n="Ver planos">Ver planos</button>
 </div>
 <div class="pass-account-details" id="pass-account-details" hidden>
-<div class="pass-account-status-row"><span class="pass-account-status" id="pass-account-status">—</span><span class="pass-account-provider" id="pass-account-provider">—</span></div>
+<div class="pass-account-status-row"><span class="pass-account-status" id="pass-account-status">—</span><span class="pass-account-renewal-state" id="pass-account-renewal-state" hidden>RENOVAÇÃO CANCELADA</span><span class="pass-account-provider" id="pass-account-provider">—</span></div>
 <div class="pass-account-grid">
 <div><small data-i18n="Plano">Plano</small><strong id="pass-account-plan">—</strong></div>
 <div><small data-i18n="Valor">Valor</small><strong id="pass-account-price">—</strong></div>
-<div><small data-i18n="Próxima cobrança">Próxima cobrança</small><strong id="pass-account-renewal">—</strong></div>
+<div><small id="pass-account-renewal-label" data-i18n="Próxima cobrança">Próxima cobrança</small><strong id="pass-account-renewal">—</strong></div>
 </div>
 <p class="pass-account-note" id="pass-account-note"></p>
 <div class="pass-account-actions" id="pass-account-actions">
-<button class="settings-pass-secondary" id="pass-pause-button" data-pass-action="pause" type="button" data-i18n="Pausar assinatura">Pausar assinatura</button>
-<button class="settings-pass-primary" id="pass-resume-button" data-pass-action="resume" type="button" data-i18n="Reativar assinatura" hidden>Reativar assinatura</button>
-<button class="settings-pass-danger" id="pass-cancel-button" data-pass-action="cancel" type="button" data-i18n="Cancelar assinatura">Cancelar assinatura</button>
+<button class="settings-pass-danger" id="pass-cancel-button" data-pass-action="cancel_at_period_end" type="button" data-i18n="Cancelar renovação">Cancelar renovação</button>
 </div>
 <p class="auth-feedback settings-feedback pass-account-feedback" id="pass-account-feedback"></p>
 </div>
@@ -371,6 +369,6 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script src="i18n.js"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260825-pass-account-1"></script>
+<script src="i18n.js"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260825-pass-cancel-period-1"></script>
 </body>
 </html>

@@ -24,10 +24,10 @@
   const passAccountPlan = document.querySelector("#pass-account-plan");
   const passAccountPrice = document.querySelector("#pass-account-price");
   const passAccountRenewal = document.querySelector("#pass-account-renewal");
+  const passAccountRenewalLabel = document.querySelector("#pass-account-renewal-label");
+  const passAccountRenewalState = document.querySelector("#pass-account-renewal-state");
   const passAccountNote = document.querySelector("#pass-account-note");
   const passAccountFeedback = document.querySelector("#pass-account-feedback");
-  const passPauseButton = document.querySelector("#pass-pause-button");
-  const passResumeButton = document.querySelector("#pass-resume-button");
   const passCancelButton = document.querySelector("#pass-cancel-button");
   const passViewPlansButton = document.querySelector("#pass-view-plans");
   const changePasswordForm = document.querySelector("#change-password-form");
@@ -74,6 +74,7 @@
   let lastMercadoPagoPassSyncAt = 0;
   let lastMercadoPagoPassSyncResult = null;
   let passAccountLoadPromise = null;
+  let currentPassAccountSubscription = null;
 
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
@@ -487,12 +488,19 @@
   function passPriceLabel(subscription) {
     const provider = String(subscription?.provider || "");
     const plan = String(subscription?.plan || "monthly");
-    if (provider === "mercadopago") {
-      return plan === "annual" ? "R$ 509,90/ano" : "R$ 54,90/mês";
+    const amount = Number(subscription?.amount);
+    const currency = String(subscription?.currency || (provider === "mercadopago" ? "BRL" : "USD"));
+
+    if (Number.isFinite(amount) && amount > 0) {
+      const formatted = new Intl.NumberFormat(
+        currency === "BRL" ? "pt-BR" : "en-US",
+        { style: "currency", currency }
+      ).format(amount);
+      return `${formatted}${plan === "annual" ? tr("/ano") : tr("/mês")}`;
     }
-    if (provider === "paddle") {
-      return plan === "annual" ? "US$ 79,99/ano" : "US$ 9,99/mês";
-    }
+
+    if (provider === "mercadopago") return plan === "annual" ? "R$ 509,90/ano" : "R$ 54,90/mês";
+    if (provider === "paddle") return plan === "annual" ? "US$ 79,99/ano" : "US$ 9,99/mês";
     return "—";
   }
 
@@ -507,6 +515,7 @@
   }
 
   function renderPassAccount(subscription) {
+    currentPassAccountSubscription = subscription || null;
     if (passAccountLoading) passAccountLoading.hidden = true;
     setSettingsFeedback(passAccountFeedback);
 
@@ -521,6 +530,8 @@
 
     const status = String(subscription.status || "pending").toLowerCase();
     const provider = String(subscription.provider || "");
+    const renewalCanceled = Boolean(subscription.renewal_canceled);
+    const accessUntil = subscription.access_until || subscription.current_period_ends_at || null;
 
     if (passAccountStatus) {
       passAccountStatus.textContent = passStatusLabel(status);
@@ -529,30 +540,34 @@
     if (passAccountProvider) {
       passAccountProvider.textContent = provider === "mercadopago" ? tr("Mercado Pago") : provider === "paddle" ? tr("Paddle") : provider;
     }
+    if (passAccountRenewalState) {
+      passAccountRenewalState.hidden = !renewalCanceled;
+      passAccountRenewalState.textContent = renewalCanceled ? tr("RENOVAÇÃO CANCELADA") : "";
+    }
     if (passAccountPlan) passAccountPlan.textContent = passPlanLabel(subscription.plan);
     if (passAccountPrice) passAccountPrice.textContent = passPriceLabel(subscription);
+    if (passAccountRenewalLabel) {
+      passAccountRenewalLabel.textContent = renewalCanceled ? tr("Acesso até") : tr("Próxima cobrança");
+    }
     if (passAccountRenewal) {
-      passAccountRenewal.textContent = status === "active" || status === "past_due"
-        ? formatPassDate(subscription.current_period_ends_at)
+      passAccountRenewal.textContent = (status === "active" || status === "past_due")
+        ? formatPassDate(accessUntil)
         : "—";
     }
 
     const canManageMp = provider === "mercadopago" && subscription.environment === "test";
-    if (passPauseButton) {
-      passPauseButton.hidden = !(canManageMp && status === "active");
-    }
-    if (passResumeButton) {
-      passResumeButton.hidden = !(canManageMp && status === "paused");
-    }
     if (passCancelButton) {
-      passCancelButton.hidden = !(canManageMp && ["active", "paused", "pending"].includes(status));
+      passCancelButton.hidden = !(canManageMp && status === "active" && !renewalCanceled);
+      passCancelButton.textContent = tr("Cancelar renovação");
     }
     if (passAccountNote) {
-      passAccountNote.textContent = canManageMp
-        ? tr("Gerenciamento disponível pelo site para assinaturas Mercado Pago de teste.")
-        : provider === "paddle"
-          ? tr("Esta assinatura é gerenciada pelo Paddle. O gerenciamento pelo site será habilitado em seguida.")
-          : "";
+      passAccountNote.textContent = renewalCanceled
+        ? tr(`A renovação automática foi cancelada. Seus jogos e benefícios continuam disponíveis até ${formatPassDate(accessUntil)}. Não haverá nova cobrança.`)
+        : canManageMp
+          ? tr("A cobrança é renovada automaticamente. Se cancelar a renovação, seus benefícios continuam até o fim do período já pago.")
+          : provider === "paddle"
+            ? tr("Esta assinatura é gerenciada pelo Paddle. O cancelamento pelo site será habilitado em seguida.")
+            : "";
     }
   }
 
@@ -590,43 +605,88 @@
   }
 
   async function managePassAccount(action, button) {
-    if (!currentUser?.id) return;
-    if (action === "cancel") {
-      const confirmed = window.confirm(
-        tr("Tem certeza de que deseja cancelar o LipeX Pass? O acesso aos jogos do Pass será removido.")
-      );
-      if (!confirmed) return;
-    }
+    if (!currentUser?.id || action !== "cancel_at_period_end") return;
 
-    const loadingText =
-      action === "pause" ? tr("Pausando assinatura...") :
-      action === "resume" ? tr("Reativando assinatura...") :
-      tr("Cancelando assinatura...");
+    const accessUntil = currentPassAccountSubscription?.access_until || currentPassAccountSubscription?.current_period_ends_at;
+    const formattedDate = formatPassDate(accessUntil);
+    const confirmed = window.confirm(
+      tr(`Cancelar a renovação automática do LipeX Pass?\n\nNão haverá nova cobrança. Seus jogos e benefícios continuarão disponíveis até ${formattedDate}.`)
+    );
+    if (!confirmed) return;
 
-    setLoading(button, true, loadingText);
+    setLoading(button, true, tr("Cancelando renovação..."));
     setSettingsFeedback(passAccountFeedback);
 
     try {
-      await callAuthedEdgeFunction("manage-mercadopago-pass-test", { action });
+      const result = await callAuthedEdgeFunction("manage-mercadopago-pass-test", { action });
       await syncMercadoPagoPassIfNeeded({ force: true });
       await refreshPassAccount({ sync: false });
 
-      const message =
-        action === "pause" ? tr("Assinatura pausada. Os acessos do Pass foram atualizados.") :
-        action === "resume" ? tr("Assinatura reativada. Os jogos do Pass foram liberados novamente.") :
-        tr("Assinatura cancelada. Os acessos do Pass foram encerrados.");
-
+      const finalDate = formatPassDate(result?.access_until || accessUntil);
+      const message = tr(`Renovação cancelada. Seus benefícios continuam disponíveis até ${finalDate}. Não haverá nova cobrança.`);
       setSettingsFeedback(passAccountFeedback, message, "success");
       showToast(message, "success");
     } catch (error) {
-      console.error("LipeX: falha gerenciando Pass", error);
+      console.error("LipeX: falha cancelando renovação do Pass", error);
       setSettingsFeedback(
         passAccountFeedback,
-        String(error?.message || tr("Não foi possível gerenciar sua assinatura agora.")),
+        String(error?.message || tr("Não foi possível cancelar a renovação agora.")),
         "error"
       );
     } finally {
       setLoading(button, false);
+    }
+  }
+
+  async function loadPublicPassPrices() {
+    if (!config?.SUPABASE_URL) return;
+    try {
+      const response = await fetch(`${config.SUPABASE_URL}/functions/v1/get-lipex-pass-prices`, {
+        method: "GET",
+        headers: { apikey: config.SUPABASE_PUBLISHABLE_KEY || "" }
+      });
+      if (!response.ok) return;
+      const payload = await response.json().catch(() => null);
+      const plans = payload?.plans || {};
+      for (const plan of ["monthly", "annual"]) {
+        const button = document.querySelector(`[data-pass-plan="${plan}"]`);
+        const card = button?.closest(".lipex-pass-card");
+        const priceEl = card?.querySelector(".lipex-pass-price strong");
+        if (!priceEl) continue;
+        const brl = Number(plans?.[plan]?.BRL);
+        const usd = Number(plans?.[plan]?.USD);
+        if (Number.isFinite(brl) && brl > 0) priceEl.dataset.priceBrl = String(brl);
+        if (Number.isFinite(usd) && usd > 0) priceEl.dataset.priceUsd = String(usd);
+      }
+      const brlMonthly = Number(plans?.monthly?.BRL);
+      const brlAnnual = Number(plans?.annual?.BRL);
+      if (Number.isFinite(brlMonthly) && Number.isFinite(brlAnnual)) {
+        const monthlyEquivalent = brlAnnual / 12;
+        const yearlySaving = Math.max(0, brlMonthly * 12 - brlAnnual);
+        const savingEl = document.querySelector(".lipex-pass-saving-brl");
+        if (savingEl) {
+          const eq = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(monthlyEquivalent);
+          const save = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(yearlySaving);
+          savingEl.textContent = `Equivale a cerca de ${eq} por mês. Economize ${save} por ano.`;
+        }
+      }
+      const usdAnnual = Number(plans?.annual?.USD);
+      if (Number.isFinite(usdAnnual)) {
+        const savingUsd = document.querySelector(".lipex-pass-saving-usd");
+        if (savingUsd) savingUsd.textContent = `Equivale a cerca de US$ ${(usdAnnual / 12).toFixed(2)} por mês.`;
+      }
+
+      // O currency.js usa os data-price-*; forçamos atualização visual no valor atual.
+      const currency = window.LipexCurrency?.getCurrency?.() || "BRL";
+      document.querySelectorAll(".lipex-pass-price strong[data-price-brl]").forEach((el) => {
+        const amount = Number(currency === "USD" ? el.dataset.priceUsd : el.dataset.priceBrl);
+        if (!Number.isFinite(amount)) return;
+        el.textContent = new Intl.NumberFormat(currency === "USD" ? "en-US" : "pt-BR", {
+          style: "currency", currency
+        }).format(amount);
+      });
+    } catch (error) {
+      console.warn("LipeX: não foi possível atualizar preços do Pass", error);
     }
   }
 
@@ -720,6 +780,7 @@
             if (transactionId) url.searchParams.set("transaction_id", transactionId);
             window.history.replaceState({}, "", url.pathname + url.search + url.hash);
             showPaymentReturnMessage();
+  loadPublicPassPrices();
             showToast(
               isPassCheckout
                 ? tr("Assinatura concluída. O acesso será liberado automaticamente no launcher.")
@@ -879,9 +940,7 @@
   });
 
 
-  passPauseButton?.addEventListener("click", () => managePassAccount("pause", passPauseButton));
-  passResumeButton?.addEventListener("click", () => managePassAccount("resume", passResumeButton));
-  passCancelButton?.addEventListener("click", () => managePassAccount("cancel", passCancelButton));
+  passCancelButton?.addEventListener("click", () => managePassAccount("cancel_at_period_end", passCancelButton));
   passViewPlansButton?.addEventListener("click", () => {
     closeAccountSettings();
     document.querySelector("#lipex-pass")?.scrollIntoView({ behavior: "smooth", block: "start" });
