@@ -1,6 +1,7 @@
 (() => {
   const config = window.LIPEX_CONFIG || {};
   const tr = (text) => window.LipexI18n?.t?.(text) || text;
+  const msg = (pt, en) => window.LipexI18n?.getLanguage?.() === "en" ? en : pt;
   const configReady =
     typeof config.SUPABASE_URL === "string" &&
     config.SUPABASE_URL.startsWith("https://") &&
@@ -66,6 +67,8 @@
   let supabaseClient = null;
   let pendingDirectCheckout = null;
   let pendingPassPlan = null;
+  let pendingPassCurrency = null;
+  let pendingManagePass = false;
   let paddleInitialized = false;
   let activePaddleCheckoutButton = null;
   let activePaddleCheckoutKind = null;
@@ -79,22 +82,51 @@
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
     const requestedProduct = String(params.get("checkout") || "").trim();
-    if (!requestedProduct) return;
+    const requestedPass = String(params.get("pass") || "").trim().toLowerCase();
+    const requestedManage = String(params.get("manage") || "").trim().toLowerCase();
+    const requestedCurrency = String(params.get("currency") || "").trim().toUpperCase();
 
-    pendingDirectCheckout = requestedProduct;
+    if (requestedProduct) pendingDirectCheckout = requestedProduct;
+    if (requestedPass === "monthly" || requestedPass === "annual") {
+      pendingPassPlan = requestedPass;
+      if (requestedCurrency === "BRL" || requestedCurrency === "USD") {
+        pendingPassCurrency = requestedCurrency;
+      }
+    }
+    if (requestedManage === "lipex-pass" || requestedManage === "pass") {
+      pendingManagePass = true;
+    }
 
-    // Remove only the checkout flag from the visible URL so refresh/back
-    // does not accidentally create another checkout session.
+    if (!requestedProduct && !pendingPassPlan && !pendingManagePass) return;
+
+    // Deep links are one-shot. Removing them prevents refresh/back from reopening
+    // checkout or account management unexpectedly.
     params.delete("checkout");
+    params.delete("pass");
+    params.delete("manage");
+    params.delete("source");
+    if (pendingPassCurrency) params.delete("currency");
     const nextQuery = params.toString();
-    const nextUrl =
-      window.location.pathname +
-      (nextQuery ? `?${nextQuery}` : "") +
-      window.location.hash;
+    const nextUrl = window.location.pathname + (nextQuery ? `?${nextQuery}` : "") + window.location.hash;
     window.history.replaceState({}, "", nextUrl);
   }
 
   function continueDirectCheckoutIfReady() {
+    if (pendingManagePass) {
+      if (!currentUser) {
+        openAuth("login");
+        setAuthFeedback(
+          tr("Entre na sua conta para gerenciar o LipeX Pass. Depois do login, abriremos sua assinatura automaticamente."),
+          "info"
+        );
+        return;
+      }
+      pendingManagePass = false;
+      openAccountSettings();
+      window.setTimeout(() => document.querySelector("#pass-account-section")?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+      return;
+    }
+
     if (pendingPassPlan) {
       const matchingPassButton = document.querySelector(`[data-pass-plan="${pendingPassPlan}"]`);
       if (matchingPassButton) {
@@ -107,7 +139,11 @@
           return;
         }
 
+        if (pendingPassCurrency && window.LipexCurrency?.setCurrency) {
+          window.LipexCurrency.setCurrency(pendingPassCurrency, true);
+        }
         pendingPassPlan = null;
+        pendingPassCurrency = null;
         window.setTimeout(() => matchingPassButton.click(), 80);
         return;
       }
@@ -118,9 +154,7 @@
     const matchingButton = getBuyButtons().find(
       (button) => button.dataset.buyProduct === pendingDirectCheckout
     );
-    if (!matchingButton) {
-      return;
-    }
+    if (!matchingButton) return;
 
     if (!currentUser) {
       openAuth("login");
@@ -514,8 +548,55 @@
     ).format(date);
   }
 
+  function updatePassPlanButtons(subscription) {
+    const monthlyButton = document.querySelector('[data-pass-plan="monthly"]');
+    const annualButton = document.querySelector('[data-pass-plan="annual"]');
+    for (const button of [monthlyButton, annualButton]) {
+      if (!button) continue;
+      button.disabled = false;
+      button.classList.remove("current-plan");
+    }
+
+    const status = String(subscription?.status || "").toLowerCase();
+    const plan = String(subscription?.plan || "").toLowerCase();
+    const renewalCanceled = Boolean(subscription?.renewal_canceled);
+    const effective = ["active", "trialing", "past_due"].includes(status);
+
+    if (!subscription || !effective) {
+      if (monthlyButton) monthlyButton.textContent = tr("Assinar mensal");
+      if (annualButton) annualButton.textContent = tr("Assinar anual");
+      return;
+    }
+
+    if (plan === "monthly") {
+      if (monthlyButton) {
+        monthlyButton.textContent = tr("PLANO ATUAL");
+        monthlyButton.disabled = true;
+        monthlyButton.classList.add("current-plan");
+      }
+      if (annualButton) {
+        annualButton.textContent = renewalCanceled ? tr("RENOVAÇÃO CANCELADA") : tr("ALTERAR PARA ANUAL");
+        annualButton.disabled = renewalCanceled;
+      }
+      return;
+    }
+
+    if (plan === "annual") {
+      if (annualButton) {
+        annualButton.textContent = tr("PLANO ATUAL");
+        annualButton.disabled = true;
+        annualButton.classList.add("current-plan");
+      }
+      if (monthlyButton) {
+        monthlyButton.textContent = tr("PLANO ANUAL ATIVO");
+        monthlyButton.disabled = true;
+      }
+    }
+  }
+
   function renderPassAccount(subscription) {
     currentPassAccountSubscription = subscription || null;
+    updatePassPlanButtons(subscription);
     if (passAccountLoading) passAccountLoading.hidden = true;
     setSettingsFeedback(passAccountFeedback);
 
@@ -556,18 +637,18 @@
     }
 
     const canManageMp = provider === "mercadopago" && subscription.environment === "test";
+    const canManagePaddle = provider === "paddle" && subscription.environment === "test";
+    const canCancelRenewal = (canManageMp || canManagePaddle) && status === "active" && !renewalCanceled;
     if (passCancelButton) {
-      passCancelButton.hidden = !(canManageMp && status === "active" && !renewalCanceled);
+      passCancelButton.hidden = !canCancelRenewal;
       passCancelButton.textContent = tr("Cancelar renovação");
     }
     if (passAccountNote) {
       passAccountNote.textContent = renewalCanceled
-        ? tr(`A renovação automática foi cancelada. Seus jogos e benefícios continuam disponíveis até ${formatPassDate(accessUntil)}. Não haverá nova cobrança.`)
-        : canManageMp
+        ? msg(`A renovação automática foi cancelada. Seus jogos e benefícios continuam disponíveis até ${formatPassDate(accessUntil)}. Não haverá nova cobrança.`, `Automatic renewal is canceled. Your games and benefits remain available until ${formatPassDate(accessUntil)}. There will be no new charge.`)
+        : (canManageMp || canManagePaddle)
           ? tr("A cobrança é renovada automaticamente. Se cancelar a renovação, seus benefícios continuam até o fim do período já pago.")
-          : provider === "paddle"
-            ? tr("Esta assinatura é gerenciada pelo Paddle. O cancelamento pelo site será habilitado em seguida.")
-            : "";
+          : "";
     }
   }
 
@@ -610,7 +691,7 @@
     const accessUntil = currentPassAccountSubscription?.access_until || currentPassAccountSubscription?.current_period_ends_at;
     const formattedDate = formatPassDate(accessUntil);
     const confirmed = window.confirm(
-      tr(`Cancelar a renovação automática do LipeX Pass?\n\nNão haverá nova cobrança. Seus jogos e benefícios continuarão disponíveis até ${formattedDate}.`)
+      msg(`Cancelar a renovação automática do LipeX Pass?\n\nNão haverá nova cobrança. Seus jogos e benefícios continuarão disponíveis até ${formattedDate}.`, `Cancel automatic LipeX Pass renewal?\n\nThere will be no new charge. Your games and benefits will remain available until ${formattedDate}.`)
     );
     if (!confirmed) return;
 
@@ -618,12 +699,14 @@
     setSettingsFeedback(passAccountFeedback);
 
     try {
-      const result = await callAuthedEdgeFunction("manage-mercadopago-pass-test", { action });
-      await syncMercadoPagoPassIfNeeded({ force: true });
+      const provider = String(currentPassAccountSubscription?.provider || "");
+      const functionName = provider === "paddle" ? "manage-paddle-pass-test" : "manage-mercadopago-pass-test";
+      const result = await callAuthedEdgeFunction(functionName, { action });
+      if (provider === "mercadopago") await syncMercadoPagoPassIfNeeded({ force: true });
       await refreshPassAccount({ sync: false });
 
       const finalDate = formatPassDate(result?.access_until || accessUntil);
-      const message = tr(`Renovação cancelada. Seus benefícios continuam disponíveis até ${finalDate}. Não haverá nova cobrança.`);
+      const message = msg(`Renovação cancelada. Seus benefícios continuam disponíveis até ${finalDate}. Não haverá nova cobrança.`, `Renewal canceled. Your benefits remain available until ${finalDate}. There will be no new charge.`);
       setSettingsFeedback(passAccountFeedback, message, "success");
       showToast(message, "success");
     } catch (error) {
@@ -709,16 +792,6 @@
       failure: {
         title: tr("Pagamento não concluído"),
         text: tr("A compra não foi concluída. Você pode tentar novamente quando quiser."),
-        type: "error"
-      },
-      stripe_success: {
-        title: tr("Pagamento Stripe concluído"),
-        text: tr("A Stripe confirmou o checkout. A licença é liberada automaticamente pelo servidor após a confirmação do pagamento. Atualize o LipeX Launcher em alguns instantes."),
-        type: "success"
-      },
-      stripe_cancel: {
-        title: tr("Checkout Stripe cancelado"),
-        text: tr("A compra não foi concluída. Nenhuma licença foi liberada e você pode tentar novamente quando quiser."),
         type: "error"
       },
       paddle_success: {
@@ -1125,26 +1198,65 @@
       return;
     }
 
-    const selectedCurrency = window.LipexCurrency?.getCurrency?.() || "BRL";
-    const isBrazilCheckout = selectedCurrency === "BRL";
-
-    if (!isBrazilCheckout && !initializePaddleSandbox()) {
-      showToast(tr("O checkout do LipeX Pass ainda não está disponível nesta página."), "error");
-      return;
-    }
-
-    setLoading(button, true, tr("Abrindo checkout..."));
+    setLoading(button, true, tr("Verificando assinatura..."));
 
     try {
+      // UI check for a friendly response. The checkout Edge Functions repeat this
+      // server-side, so bypassing the page still cannot create a second Pass.
+      const statusData = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
+      const existing = statusData?.primary || null;
+      const existingStatus = String(existing?.status || "").toLowerCase();
+      const existingPlan = String(existing?.plan || "monthly").toLowerCase();
+      const renewalCanceled = Boolean(existing?.renewal_canceled);
+
+      if (existing && ["active", "trialing", "past_due"].includes(existingStatus)) {
+        updatePassPlanButtons(existing);
+        if (renewalCanceled) {
+          throw new Error(tr("A renovação deste LipeX Pass já foi cancelada. O acesso continua até o fim do período pago; não é possível criar outra assinatura agora."));
+        }
+        if (existingPlan === plan) {
+          throw new Error(tr("Você já possui este LipeX Pass ativo. Não haverá uma segunda assinatura nem uma segunda cobrança."));
+        }
+        if (existingPlan === "monthly" && plan === "annual") {
+          const providerName = existing.provider === "paddle" ? "Paddle" : "Mercado Pago";
+          if (existing.provider === "mercadopago") {
+            throw new Error(tr("Seu LipeX Pass mensal está no Mercado Pago. Para sua segurança, a troca automática da frequência mensal para anual não é feita enquanto o Mercado Pago não oferecer esse tipo de alteração de forma documentada. Sua assinatura atual continua normal e nenhum segundo Pass será criado."));
+          }
+          const confirmed = window.confirm(msg(`Alterar seu LipeX Pass mensal para o anual no ${providerName}?
+
+A assinatura atual será atualizada no mesmo provedor. Não será criada uma segunda assinatura e não haverá cobrança imediata nesta alteração.`, `Switch your monthly LipeX Pass to annual on ${providerName}?
+
+Your current subscription will be updated with the same provider. A second subscription will not be created and there will be no immediate charge for this change.`));
+          if (!confirmed) return;
+          setLoading(button, true, tr("Alterando para anual..."));
+          await callAuthedEdgeFunction("change-lipex-pass-plan-test", { target_plan: "annual" });
+          const refreshed = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
+          renderPassAccount(refreshed?.primary || null);
+          showToast(tr("Plano alterado para anual. A próxima renovação seguirá o novo plano no mesmo provedor."), "success");
+          return;
+        }
+        throw new Error(tr("Você já possui um LipeX Pass ativo. Para evitar cobrança duplicada, não é possível criar outro plano em paralelo."));
+      }
+
+      if (existing && ["pending", "paused"].includes(existingStatus)) {
+        throw new Error(existingStatus === "paused"
+          ? tr("Você já possui um LipeX Pass pausado. Reative a assinatura existente em vez de criar outra.")
+          : tr("Já existe um checkout do LipeX Pass aguardando conclusão. Finalize ou aguarde essa tentativa expirar."));
+      }
+
+      const selectedCurrency = window.LipexCurrency?.getCurrency?.() || "BRL";
+      const isBrazilCheckout = selectedCurrency === "BRL";
+
+      if (!isBrazilCheckout && !initializePaddleSandbox()) {
+        throw new Error(tr("O checkout do LipeX Pass ainda não está disponível nesta página."));
+      }
+
+      setLoading(button, true, tr("Abrindo checkout..."));
       const functionName = isBrazilCheckout
         ? "create-checkout-mercadopago-pass-test"
         : "create-checkout-paddle-pass";
 
-      const { data, error } = await supabaseClient.functions.invoke(
-        functionName,
-        { body: { plan } }
-      );
-
+      const { data, error } = await supabaseClient.functions.invoke(functionName, { body: { plan } });
       if (error) {
         const context = error?.context;
         let serverMessage = "";
@@ -1159,18 +1271,13 @@
 
       if (isBrazilCheckout) {
         const checkoutUrl = String(data?.checkout_url || "");
-        if (!checkoutUrl.startsWith("https://")) {
-          throw new Error(data?.error || tr("O Mercado Pago não retornou um checkout válido."));
-        }
+        if (!checkoutUrl.startsWith("https://")) throw new Error(data?.error || tr("O Mercado Pago não retornou um checkout válido."));
         window.location.assign(checkoutUrl);
         return;
       }
 
       const transactionId = String(data?.transaction_id || "");
-      if (!transactionId.startsWith("txn_")) {
-        throw new Error(data?.error || tr("O Paddle não retornou uma transação válida."));
-      }
-
+      if (!transactionId.startsWith("txn_")) throw new Error(data?.error || tr("O Paddle não retornou uma transação válida."));
       activePaddleCheckoutButton = button;
       activePaddleCheckoutKind = "pass";
       window.Paddle.Checkout.open({
@@ -1184,9 +1291,9 @@
     } catch (error) {
       console.error(error);
       const message = String(error?.message || tr("Não foi possível abrir o checkout."));
-      showToast(message, message.includes("já possui") ? "info" : "error");
-      setLoading(button, false);
-      activePaddleCheckoutKind = null;
+      showToast(message, /já possui|already|renovação|renewal|pausad|pending|aguardando/i.test(message) ? "info" : "error");
+    } finally {
+      if (activePaddleCheckoutButton !== button) setLoading(button, false);
     }
   });
 
@@ -1252,14 +1359,19 @@
 
     const { data } = await supabaseClient.auth.getSession();
     updateAccountUI(data?.session?.user || null);
-    if (currentUser) await syncMercadoPagoPassIfNeeded();
+    if (currentUser) {
+      await syncMercadoPagoPassIfNeeded();
+      await refreshPassAccount({ sync: false }).catch(() => null);
+    } else {
+      renderPassAccount(null);
+    }
     continueDirectCheckoutIfReady();
 
     supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAccountUI(session?.user || null);
       if (session?.user) {
         if (event === "SIGNED_IN" || event === "USER_UPDATED") {
-          syncMercadoPagoPassIfNeeded().catch(() => {});
+          syncMercadoPagoPassIfNeeded().then(() => refreshPassAccount({ sync: false })).catch(() => {});
         }
         continueDirectCheckoutIfReady();
       }
