@@ -1,135 +1,67 @@
 (() => {
   const STORAGE_KEY = "lipex_site_currency";
-  const SUPPORTED = new Set(["BRL", "USD"]);
-  const saved = localStorage.getItem(STORAGE_KEY);
-  const urlParams = new URLSearchParams(window.location.search);
-  const requestedCurrency = String(urlParams.get("currency") || "").toUpperCase();
-  const hasRequestedCurrency = SUPPORTED.has(requestedCurrency);
+  const ONBOARD_KEY = "lipex_site_language_onboarding_v1";
+  const qs = new URLSearchParams(window.location.search);
+  const requestedCurrency = String(qs.get("currency") || "").toUpperCase();
+  const requestedLanguage = String(qs.get("lang") || "").toLowerCase();
+  let currentCurrency = requestedCurrency === "USD" ? "USD" : requestedCurrency === "BRL" ? "BRL" : (localStorage.getItem(STORAGE_KEY) === "USD" ? "USD" : "BRL");
 
-  let explicitChoice = hasRequestedCurrency || SUPPORTED.has(saved);
-  let currentCurrency = hasRequestedCurrency
-    ? requestedCurrency
-    : (SUPPORTED.has(saved)
-      ? saved
-      : (window.LipexI18n?.getLanguage?.() === "en" ? "USD" : "BRL"));
-
-  if (hasRequestedCurrency) {
-    localStorage.setItem(STORAGE_KEY, requestedCurrency);
-    urlParams.delete("currency");
-    const nextQuery = urlParams.toString();
-    const nextUrl =
-      window.location.pathname +
-      (nextQuery ? `?${nextQuery}` : "") +
-      window.location.hash;
-    window.history.replaceState({}, "", nextUrl);
+  if (requestedLanguage === "pt" || requestedLanguage === "en") {
+    window.LipexI18n?.setLanguage?.(requestedLanguage);
+    localStorage.setItem(ONBOARD_KEY, "1");
   }
 
-  function formatPrice(amount, currency) {
-    const value = Number(amount);
-    if (!Number.isFinite(value)) return "—";
-    if (currency === "USD") return `US$ ${value.toFixed(2)}`;
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+  function format(amount, currency) {
+    return new Intl.NumberFormat(currency === "USD" ? "en-US" : "pt-BR", { style: "currency", currency }).format(amount);
   }
-
+  function closeMenus(except = null) {
+    document.querySelectorAll(".currency-menu").forEach((menu) => { if (menu !== except) menu.hidden = true; });
+    document.querySelectorAll("[data-currency-toggle]").forEach((button) => {
+      const own = button.closest(".currency-wrap")?.querySelector(".currency-menu");
+      if (own !== except) button.setAttribute("aria-expanded", "false");
+    });
+  }
   function applyCurrency() {
     document.documentElement.dataset.currency = currentCurrency.toLowerCase();
-
-    document.querySelectorAll("[data-currency-current]").forEach((el) => {
-      el.textContent = currentCurrency;
-    });
-
+    document.querySelectorAll("[data-currency-current]").forEach((el) => { el.textContent = currentCurrency; });
+    document.querySelectorAll("[data-currency-provider]").forEach((el) => { el.textContent = currentCurrency === "USD" ? "Paddle" : "Mercado Pago"; });
     document.querySelectorAll("[data-currency-option]").forEach((button) => {
-      const active = button.dataset.currencyOption === currentCurrency;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-checked", active ? "true" : "false");
+      const active = String(button.dataset.currencyOption || "").toUpperCase() === currentCurrency;
+      button.classList.toggle("active", active); button.setAttribute("aria-checked", active ? "true" : "false");
     });
-
     document.querySelectorAll("[data-price-brl][data-price-usd]").forEach((el) => {
-      const raw = currentCurrency === "USD" ? el.dataset.priceUsd : el.dataset.priceBrl;
-      el.textContent = formatPrice(raw, currentCurrency);
+      const amount = Number(currentCurrency === "USD" ? el.dataset.priceUsd : el.dataset.priceBrl);
+      if (Number.isFinite(amount)) el.textContent = format(amount, currentCurrency);
     });
   }
-
   function setCurrency(currency, persist = true) {
-    const next = String(currency || "").toUpperCase();
-    if (!SUPPORTED.has(next)) return;
-    currentCurrency = next;
-    if (persist) {
-      localStorage.setItem(STORAGE_KEY, currentCurrency);
-      explicitChoice = true;
-    }
+    currentCurrency = String(currency).toUpperCase() === "USD" ? "USD" : "BRL";
+    if (persist) localStorage.setItem(STORAGE_KEY, currentCurrency);
     applyCurrency();
-    window.dispatchEvent(new CustomEvent("lipex:currencychange", {
-      detail: { currency: currentCurrency },
-    }));
+    window.dispatchEvent(new CustomEvent("lipex:currencychange", { detail: { currency: currentCurrency } }));
   }
-
-  function closeCurrencyMenus(except = null) {
-    document.querySelectorAll(".currency-wrap").forEach((wrap) => {
-      if (wrap === except) return;
-      const menu = wrap.querySelector(".currency-menu");
-      const button = wrap.querySelector("[data-currency-toggle]");
-      if (menu) menu.hidden = true;
-      if (button) button.setAttribute("aria-expanded", "false");
-    });
-  }
-
-  function setupCurrencyMenus() {
-    document.querySelectorAll("[data-currency-toggle]").forEach((button) => {
-      const wrap = button.closest(".currency-wrap");
-      const menu = wrap?.querySelector(".currency-menu");
-      if (!wrap || !menu) return;
-
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
-        closeCurrencyMenus(wrap);
-        document.querySelectorAll(".language-menu").forEach((other) => { other.hidden = true; });
-        document.querySelectorAll("[data-language-toggle]").forEach((other) => other.setAttribute("aria-expanded", "false"));
-        menu.hidden = !menu.hidden;
-        button.setAttribute("aria-expanded", menu.hidden ? "false" : "true");
-      });
-
-      menu.querySelectorAll("[data-currency-option]").forEach((option) => {
-        option.addEventListener("click", () => {
-          setCurrency(option.dataset.currencyOption, true);
-          menu.hidden = true;
-          button.setAttribute("aria-expanded", "false");
-        });
-      });
-    });
-
-    document.addEventListener("click", (event) => {
-      document.querySelectorAll(".currency-wrap").forEach((wrap) => {
-        if (wrap.contains(event.target)) return;
-        const menu = wrap.querySelector(".currency-menu");
-        const button = wrap.querySelector("[data-currency-toggle]");
-        if (menu) menu.hidden = true;
-        if (button) button.setAttribute("aria-expanded", "false");
-      });
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeCurrencyMenus();
-    });
-  }
-
-  window.addEventListener("lipex:languagechange", (event) => {
-    if (explicitChoice) return;
-    setCurrency(event.detail?.language === "en" ? "USD" : "BRL", false);
+  document.addEventListener("click", (event) => {
+    const toggle = event.target.closest?.("[data-currency-toggle]");
+    if (toggle) {
+      event.preventDefault(); event.stopPropagation();
+      const menu = toggle.closest(".currency-wrap")?.querySelector(".currency-menu"); if (!menu) return;
+      const willOpen = menu.hidden; closeMenus(menu); menu.hidden = !willOpen; toggle.setAttribute("aria-expanded", willOpen ? "true" : "false"); return;
+    }
+    const option = event.target.closest?.("[data-currency-option]");
+    if (option) { event.preventDefault(); event.stopPropagation(); setCurrency(option.dataset.currencyOption); closeMenus(); return; }
+    if (!event.target.closest?.(".currency-wrap")) closeMenus();
   });
-
-  window.LipexCurrency = {
-    getCurrency: () => currentCurrency,
-    setCurrency,
-    formatPrice,
-    applyCurrency,
-  };
-
-  setupCurrencyMenus();
+  window.addEventListener("lipex:siteconfigapplied", applyCurrency);
+  window.LipexCurrency = { getCurrency: () => currentCurrency, setCurrency, apply: applyCurrency };
   applyCurrency();
+
+  const modal = document.getElementById("first-visit-language");
+  const fromLauncher = qs.get("source") === "launcher";
+  if (modal && !fromLauncher && !localStorage.getItem(ONBOARD_KEY)) {
+    modal.hidden = false; modal.setAttribute("aria-hidden", "false"); document.body.classList.add("first-visit-open");
+  }
+  modal?.querySelectorAll("[data-first-language]").forEach((button) => button.addEventListener("click", () => {
+    const language = button.dataset.firstLanguage === "en" ? "en" : "pt";
+    window.LipexI18n?.setLanguage?.(language); localStorage.setItem(ONBOARD_KEY, "1"); modal.hidden = true; modal.setAttribute("aria-hidden", "true"); document.body.classList.remove("first-visit-open");
+  }));
 })();

@@ -6,10 +6,22 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="LipeX Interactive Games — jogos interativos para TikTok LIVE com launcher próprio, comunidade para streamers e ativação automática." name="description"/>
 <title>LipeX Interactive Games</title>
-<link href="styles.css?v=20260826-v0126" rel="stylesheet"/>
+<link href="styles.css?v=20260828-v0128" rel="stylesheet"/>
 </head>
 <body data-title-pt="LipeX Interactive Games">
 <div class="payment-banner" hidden="" id="payment-banner"></div>
+<div class="first-visit-modal" id="first-visit-language" hidden aria-modal="true" role="dialog" aria-labelledby="first-visit-title">
+  <div class="first-visit-card">
+    <div class="first-visit-brand"><img src="assets/lipex-emblem.png" alt="LipeX Interactive Games"><div><strong>LipeX</strong><span>INTERACTIVE GAMES</span></div></div>
+    <span class="eyebrow"><i></i><span>WELCOME • BEM-VINDO</span></span>
+    <h2 id="first-visit-title">Escolha seu idioma</h2>
+    <p>Choose your language • Escolha o idioma que deseja usar no site.</p>
+    <div class="first-visit-options">
+      <button type="button" data-first-language="pt"><b>PT</b><span>Português (Brasil)</span></button>
+      <button type="button" data-first-language="en"><b>EN</b><span>English</span></button>
+    </div>
+  </div>
+</div>
 <header class="site-header">
 <a aria-label="LipeX Interactive Games" class="brand" href="#inicio">
 <img alt="Logo LipeX Interactive Games" class="brand-emblem" src="assets/lipex-emblem.png"/>
@@ -19,9 +31,15 @@
 <a data-i18n="Recursos" href="#recursos">Recursos</a>
 <a data-i18n="Como funciona" href="#como-funciona">Como funciona</a>
 <a data-i18n="Jogos" href="#jogos">Jogos</a>
+	<a data-i18n="LipeX Pass" href="#lipex-pass">LipeX Pass</a>
 <a data-i18n="Comunidade" href="#comunidade">Comunidade</a><a data-i18n="FAQ" href="#faq">FAQ</a>
 </nav>
-<div class="header-actions"><div class="language-wrap">
+<div class="header-actions"><div class="currency-wrap header-currency-wrap">
+<button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar moeda" class="currency-button header-currency-button" data-currency-toggle type="button"><span data-currency-current>BRL</span></button>
+<div class="currency-menu header-currency-menu" hidden>
+<button data-currency-option="BRL" role="radio" type="button"><span class="currency-code">BRL</span><span data-i18n="Real brasileiro">Real brasileiro</span><b>✓</b></button>
+<button data-currency-option="USD" role="radio" type="button"><span class="currency-code">USD</span><span data-i18n="Dólar americano">Dólar americano</span><b>✓</b></button>
+</div></div><div class="language-wrap">
 <button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar idioma" class="language-button" data-i18n-aria-label="Selecionar idioma" data-language-toggle="" type="button">
 <svg aria-hidden="true" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3Z"></path></svg>
 <span data-i18n="PT" data-language-current="">PT</span>
@@ -131,48 +149,7 @@
 <article class="step"><span>04</span><h3 data-i18n="Abra o launcher">Abra o launcher</h3><p data-i18n="Atualize a biblioteca e o jogo estará pronto para baixar e jogar.">Atualize a biblioteca e o jogo estará pronto para baixar e jogar.</p></article>
 </div>
 </section>
-<section class="section lipex-pass-section" id="lipex-pass">
-<div class="section-heading split-heading lipex-pass-heading">
-<div>
-<span class="eyebrow"><i></i><span data-i18n="LIPEX PASS">LIPEX PASS</span></span>
-<h2 data-i18n="Todos os jogos. Uma única assinatura.">Todos os jogos. Uma única assinatura.</h2>
-</div>
-<p data-i18n="Assine o LipeX Pass e tenha acesso aos jogos incluídos no catálogo enquanto sua assinatura estiver ativa. Cancele quando quiser.">Assine o LipeX Pass e tenha acesso aos jogos incluídos no catálogo enquanto sua assinatura estiver ativa. Cancele quando quiser.</p>
-</div>
-<div class="lipex-pass-grid">
-<article class="lipex-pass-card">
-<div class="lipex-pass-card-top">
-<span class="lipex-pass-kicker" data-i18n="MENSAL">MENSAL</span>
-<h3 data-i18n="LipeX Pass Mensal">LipeX Pass Mensal</h3>
-<p data-i18n="Acesso completo aos jogos incluídos no LipeX Pass, com cobrança mensal.">Acesso completo aos jogos incluídos no LipeX Pass, com cobrança mensal.</p>
-</div>
-<div class="lipex-pass-price"><strong data-price-brl="54.90" data-price-usd="9.99">R$ 54,90</strong><span data-i18n="/ mês">/ mês</span></div>
-<ul class="lipex-pass-benefits">
-<li><span>✓</span><b data-i18n="Acesso aos jogos incluídos">Acesso aos jogos incluídos</b></li>
-<li><span>✓</span><b data-i18n="Liberação automática no launcher">Liberação automática no launcher</b></li>
-<li><span>✓</span><b data-i18n="Cancele quando quiser">Cancele quando quiser</b></li>
-</ul>
-<button class="buy-button lipex-pass-button" data-pass-plan="monthly" data-i18n="Assinar mensal" type="button">Assinar mensal</button>
-</article>
-<article class="lipex-pass-card featured">
-<div class="lipex-pass-badge" data-i18n="MELHOR VALOR">MELHOR VALOR</div>
-<div class="lipex-pass-card-top">
-<span class="lipex-pass-kicker" data-i18n="ANUAL">ANUAL</span>
-<h3 data-i18n="LipeX Pass Anual">LipeX Pass Anual</h3>
-<p data-i18n="Acesso completo aos jogos incluídos no LipeX Pass por um ano, com melhor custo mensal.">Acesso completo aos jogos incluídos no LipeX Pass por um ano, com melhor custo mensal.</p>
-</div>
-<div class="lipex-pass-price"><strong data-price-brl="509.90" data-price-usd="79.99">R$ 509,90</strong><span data-i18n="/ ano">/ ano</span></div>
-<div class="lipex-pass-saving"><span class="lipex-pass-saving-brl" data-i18n="Equivale a cerca de R$ 42,49 por mês. Economize R$ 148,90 por ano.">Equivale a cerca de R$ 42,49 por mês. Economize R$ 148,90 por ano.</span><span class="lipex-pass-saving-usd" data-i18n="Equivale a cerca de US$ 6.67 por mês.">Equivale a cerca de US$ 6.67 por mês.</span></div>
-<ul class="lipex-pass-benefits">
-<li><span>✓</span><b data-i18n="Acesso aos jogos incluídos">Acesso aos jogos incluídos</b></li>
-<li><span>✓</span><b data-i18n="Liberação automática no launcher">Liberação automática no launcher</b></li>
-<li><span>✓</span><b data-i18n="Cancele quando quiser">Cancele quando quiser</b></li>
-</ul>
-<button class="buy-button lipex-pass-button" data-pass-plan="annual" data-i18n="Assinar anual" type="button">Assinar anual</button>
-</article>
-</div>
-<p class="lipex-pass-note"><span class="lipex-pass-note-brl" data-i18n="Em BRL, a assinatura é processada pelo Mercado Pago. Os meios disponíveis aparecem no checkout.">Em BRL, a assinatura é processada pelo Mercado Pago. Os meios disponíveis aparecem no checkout.</span><span class="lipex-pass-note-usd" data-i18n="Em USD, a assinatura internacional é processada pelo Paddle.">Em USD, a assinatura internacional é processada pelo Paddle.</span></p>
-</section>
+
 <section class="section catalog" id="jogos">
 <div class="section-heading split-heading">
 <div>
@@ -229,6 +206,58 @@
 </div>
 </article>
 </div>
+</section>
+<section class="section lipex-pass-section" id="lipex-pass">
+<div class="section-heading split-heading lipex-pass-heading">
+<div>
+<span class="eyebrow"><i></i><span data-i18n="LIPEX PASS">LIPEX PASS</span></span>
+<h2 data-i18n="Todos os jogos. Uma única assinatura.">Todos os jogos. Uma única assinatura.</h2>
+</div>
+<p data-i18n="Assine o LipeX Pass e tenha acesso aos jogos incluídos no catálogo enquanto sua assinatura estiver ativa. Cancele quando quiser.">Assine o LipeX Pass e tenha acesso aos jogos incluídos no catálogo enquanto sua assinatura estiver ativa. Cancele quando quiser.</p>
+</div>
+<div class="lipex-pass-toolbar">
+  <span data-i18n="Moeda e pagamento">Moeda e pagamento</span>
+  <div class="currency-wrap pass-currency-wrap">
+    <button aria-expanded="false" aria-haspopup="true" aria-label="Selecionar moeda" class="currency-button pass-currency-button" data-currency-toggle type="button"><span data-currency-current>BRL</span><small data-currency-provider>Mercado Pago</small></button>
+    <div class="currency-menu pass-currency-menu" hidden>
+      <button data-currency-option="BRL" role="radio" type="button"><span class="currency-code">BRL</span><span>Mercado Pago</span><b>✓</b></button>
+      <button data-currency-option="USD" role="radio" type="button"><span class="currency-code">USD</span><span>Paddle</span><b>✓</b></button>
+    </div>
+  </div>
+</div>
+<div class="lipex-pass-grid">
+<article class="lipex-pass-card">
+<div class="lipex-pass-card-top">
+<span class="lipex-pass-kicker" data-i18n="MENSAL">MENSAL</span>
+<h3 data-i18n="LipeX Pass Mensal">LipeX Pass Mensal</h3>
+<p data-i18n="Acesso completo aos jogos incluídos no LipeX Pass, com cobrança mensal.">Acesso completo aos jogos incluídos no LipeX Pass, com cobrança mensal.</p>
+</div>
+<div class="lipex-pass-price"><strong data-price-brl="54.90" data-price-usd="9.99">R$ 54,90</strong><span data-i18n="/ mês">/ mês</span></div>
+<ul class="lipex-pass-benefits">
+<li><span>✓</span><b data-i18n="Acesso aos jogos incluídos">Acesso aos jogos incluídos</b></li>
+<li><span>✓</span><b data-i18n="Liberação automática no launcher">Liberação automática no launcher</b></li>
+<li><span>✓</span><b data-i18n="Cancele quando quiser">Cancele quando quiser</b></li>
+</ul>
+<button class="buy-button lipex-pass-button" data-pass-plan="monthly" data-i18n="Assinar mensal" type="button">Assinar mensal</button>
+</article>
+<article class="lipex-pass-card featured">
+<div class="lipex-pass-badge" data-i18n="MELHOR VALOR">MELHOR VALOR</div>
+<div class="lipex-pass-card-top">
+<span class="lipex-pass-kicker" data-i18n="ANUAL">ANUAL</span>
+<h3 data-i18n="LipeX Pass Anual">LipeX Pass Anual</h3>
+<p data-i18n="Acesso completo aos jogos incluídos no LipeX Pass por um ano, com melhor custo mensal.">Acesso completo aos jogos incluídos no LipeX Pass por um ano, com melhor custo mensal.</p>
+</div>
+<div class="lipex-pass-price"><strong data-price-brl="509.90" data-price-usd="79.99">R$ 509,90</strong><span data-i18n="/ ano">/ ano</span></div>
+<div class="lipex-pass-saving"><span class="lipex-pass-saving-brl" data-i18n="Equivale a cerca de R$ 42,49 por mês. Economize R$ 148,90 por ano.">Equivale a cerca de R$ 42,49 por mês. Economize R$ 148,90 por ano.</span><span class="lipex-pass-saving-usd" data-i18n="Equivale a cerca de US$ 6.67 por mês.">Equivale a cerca de US$ 6.67 por mês.</span></div>
+<ul class="lipex-pass-benefits">
+<li><span>✓</span><b data-i18n="Acesso aos jogos incluídos">Acesso aos jogos incluídos</b></li>
+<li><span>✓</span><b data-i18n="Liberação automática no launcher">Liberação automática no launcher</b></li>
+<li><span>✓</span><b data-i18n="Cancele quando quiser">Cancele quando quiser</b></li>
+</ul>
+<button class="buy-button lipex-pass-button" data-pass-plan="annual" data-i18n="Assinar anual" type="button">Assinar anual</button>
+</article>
+</div>
+<p class="lipex-pass-note"><span class="lipex-pass-note-brl" data-i18n="Em BRL, a assinatura é processada pelo Mercado Pago. Os meios disponíveis aparecem no checkout.">Em BRL, a assinatura é processada pelo Mercado Pago. Os meios disponíveis aparecem no checkout.</span><span class="lipex-pass-note-usd" data-i18n="Em USD, a assinatura internacional é processada pelo Paddle.">Em USD, a assinatura internacional é processada pelo Paddle.</span></p>
 </section>
 <section class="section social-community" id="comunidade">
 <div class="section-heading split-heading social-heading">
@@ -391,6 +420,6 @@
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script src="i18n.js?v=20260827-v0127"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260827-v0127"></script>
+<script src="i18n.js?v=20260828-v0128"></script><script src="site-editor.js?v=20260828-v0128"></script><script src="currency.js?v=20260828-v0128"></script><script src="app.js?v=20260828-v0128"></script>
 </body>
 </html>

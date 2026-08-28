@@ -634,6 +634,23 @@
     const status = String(subscription?.status || "").toLowerCase();
     const currentPlan = String(subscription?.plan || "").toLowerCase();
     const renewalCanceled = Boolean(subscription?.renewal_canceled);
+    const selectedCurrency = String(window.LipexCurrency?.getCurrency?.() || "BRL").toUpperCase();
+    const currentCurrency = String(subscription?.provider || "") === "paddle" ? "USD" : "BRL";
+
+    if (subscription && status === "pending") {
+      const pendingButton = currentPlan === "annual" ? annualButton : monthlyButton;
+      const otherButton = currentPlan === "annual" ? monthlyButton : annualButton;
+      if (selectedCurrency === currentCurrency && pendingButton) {
+        pendingButton.textContent = msg("CONTINUAR CHECKOUT", "CONTINUE CHECKOUT");
+        pendingButton.disabled = false;
+      } else if (pendingButton) {
+        pendingButton.textContent = msg("CHECKOUT PENDENTE", "CHECKOUT PENDING");
+        pendingButton.disabled = true;
+      }
+      if (otherButton) { otherButton.textContent = msg("FINALIZE O CHECKOUT PENDENTE", "FINISH PENDING CHECKOUT"); otherButton.disabled = true; }
+      return;
+    }
+
     const effective = ["active", "trialing", "past_due"].includes(status);
     if (!subscription || !effective) {
       if (monthlyButton) monthlyButton.textContent = tr("Assinar mensal");
@@ -647,8 +664,6 @@
       return;
     }
 
-    const selectedCurrency = String(window.LipexCurrency?.getCurrency?.() || "BRL").toUpperCase();
-    const currentCurrency = String(subscription?.provider || "") === "paddle" ? "USD" : "BRL";
     const sameProviderCurrency = selectedCurrency === currentCurrency;
 
     if (monthlyButton) {
@@ -1303,8 +1318,18 @@
       const statusData = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
       const existing = statusData?.primary || null;
       const existingStatus = String(existing?.status || "").toLowerCase();
-      if (existing && ["pending", "paused"].includes(existingStatus)) {
-        throw new Error(existingStatus === "paused" ? tr("Você já possui um LipeX Pass pausado. Reative a assinatura existente em vez de criar outra.") : tr("Já existe um checkout do LipeX Pass aguardando conclusão. Finalize ou aguarde essa tentativa expirar."));
+      if (existing && existingStatus === "paused") {
+        throw new Error(tr("Você já possui um LipeX Pass pausado. Reative a assinatura existente em vez de criar outra."));
+      }
+      if (existing && existingStatus === "pending") {
+        const pendingCurrency = String(existing?.currency || (existing?.provider === "paddle" ? "USD" : "BRL")).toUpperCase();
+        const pendingPlan = String(existing?.plan || plan).toLowerCase();
+        if (pendingCurrency === selectedCurrency && pendingPlan === plan) {
+          setLoading(button, true, msg("Continuando checkout...", "Continuing checkout..."));
+          await openPassCheckout(plan, selectedCurrency, button);
+          return;
+        }
+        throw new Error(msg("Existe outro checkout pendente nesta conta. Continue aquele checkout antes de iniciar uma opção diferente.", "Another checkout is pending on this account. Continue that checkout before starting a different option."));
       }
 
       const preview = await callAuthedEdgeFunction("prepare-lipex-pass-switch", { action: "preview", target_plan: plan, target_currency: selectedCurrency });
@@ -1325,7 +1350,7 @@
       const immediateCharge = Boolean(preview?.immediate_charge);
       const impact = preview?.mode === "same_provider_plan_change"
         ? msg(`<strong>A assinatura atual será atualizada no ${targetProvider}.</strong> Não será criada uma segunda assinatura e esta alteração não gera cobrança imediata. A próxima renovação seguirá o novo plano.`, `<strong>Your current subscription will be updated on ${targetProvider}.</strong> A second subscription will not be created and this change does not charge immediately. Your next renewal will use the new plan.`)
-        : msg(`<strong>${providerChanges ? `O provedor mudará de ${currentProvider} para ${targetProvider}.` : `A assinatura será substituída no ${targetProvider}.`}</strong> A renovação antiga será encerrada com segurança. Seu acesso já pago permanece protegido até ${accessUntil}. ${immediateCharge ? "Ao continuar, o novo checkout será aberto e poderá cobrar o novo plano imediatamente." : ""}`, `<strong>${providerChanges ? `The provider will change from ${currentProvider} to ${targetProvider}.` : `The subscription will be replaced on ${targetProvider}.`}</strong> The old renewal will be safely stopped. Your already-paid access remains protected until ${accessUntil}. ${immediateCharge ? "Continuing opens the new checkout, which may charge the new plan immediately." : ""}`);
+        : msg(`<strong>${providerChanges ? `O provedor mudará de ${currentProvider} para ${targetProvider} somente se o novo checkout for pago.` : `A assinatura será substituída no ${targetProvider} somente após a confirmação do novo pagamento.`}</strong> Apenas abrir ou fechar o checkout <strong>não altera a renovação atual</strong>. Depois que o novo plano for ativado, a LipeX encerra a próxima renovação do plano antigo para evitar duas cobranças recorrentes. Seu acesso atual permanece protegido. ${immediateCharge ? "Ao continuar, o novo checkout será aberto e poderá cobrar o novo plano imediatamente." : ""}`, `<strong>${providerChanges ? `The provider will change from ${currentProvider} to ${targetProvider} only if the new checkout is paid.` : `The subscription will be replaced on ${targetProvider} only after the new payment is confirmed.`}</strong> Merely opening or closing checkout <strong>does not change your current renewal</strong>. Once the new plan activates, LipeX stops the next renewal on the old plan to prevent two recurring charges. Your current access remains protected. ${immediateCharge ? "Continuing opens the new checkout, which may charge the new plan immediately." : ""}`);
 
       const confirmed = await openLipexConfirm({
         title: msg("Confirmar alteração do LipeX Pass", "Confirm LipeX Pass change"),
@@ -1411,6 +1436,40 @@
     }
   });
 
+  window.addEventListener("lipex:currencychange", () => {
+    updatePassPlanButtons(currentPassAccountSubscription);
+  });
+
+  async function consumeLauncherHandoff() {
+    if (!supabaseClient) return { handled: false, ok: false };
+    const rawHash = String(window.location.hash || "").replace(/^#/, "");
+    const hashParams = new URLSearchParams(rawHash);
+    const tokenHash = String(hashParams.get("handoff") || "");
+    const expectedUserId = String(hashParams.get("uid") || "");
+    if (!tokenHash) return { handled: false, ok: false };
+    try {
+      // A launcher handoff always wins over an old browser session.
+      await supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
+      const { data, error } = await supabaseClient.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+      if (error) throw error;
+      const actualUserId = String(data?.user?.id || data?.session?.user?.id || "");
+      if (!actualUserId || actualUserId !== expectedUserId) {
+        await supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
+        throw new Error("ACCOUNT_HANDOFF_MISMATCH");
+      }
+      const clean = new URL(window.location.href);
+      clean.hash = "lipex-pass";
+      window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
+      return { handled: true, ok: true, user: data?.user || data?.session?.user || null };
+    } catch (error) {
+      console.error("LipeX launcher→site handoff:", error);
+      const clean = new URL(window.location.href); clean.hash = "lipex-pass";
+      window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
+      showToast(tr("Não foi possível confirmar no site a mesma conta usada no launcher. Entre novamente antes de comprar."), "error");
+      return { handled: true, ok: false };
+    }
+  }
+
   async function initializeAuth() {
     showPaymentReturnMessage();
     if (!supabaseClient) {
@@ -1418,6 +1477,7 @@
       return;
     }
 
+    const handoff = await consumeLauncherHandoff();
     const { data } = await supabaseClient.auth.getSession();
     updateAccountUI(data?.session?.user || null);
     if (currentUser) {
