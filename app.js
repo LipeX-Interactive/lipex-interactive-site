@@ -97,7 +97,13 @@
   let lastMercadoPagoPassSyncResult = null;
   let passAccountLoadPromise = null;
   let currentPassAccountSubscription = null;
+  let currentPassPendingCheckout = null;
+  let launcherHandoffInFlight = false;
+  let launcherHandoffExpected = false;
+  let accountIdentityRequest = 0;
   let lipexConfirmResolver = null;
+
+  launcherHandoffExpected = new URLSearchParams(String(window.location.hash || "").replace(/^#/, "")).has("handoff");
 
   function captureDirectCheckoutRequest() {
     const params = new URLSearchParams(window.location.search);
@@ -134,6 +140,7 @@
   function continueDirectCheckoutIfReady() {
     if (pendingManagePass) {
       if (!currentUser) {
+        if (launcherHandoffExpected || launcherHandoffInFlight) return;
         openAuth("login");
         setAuthFeedback(
           tr("Entre na sua conta para gerenciar o LipeX Pass. Depois do login, abriremos sua assinatura automaticamente."),
@@ -151,6 +158,7 @@
       const matchingPassButton = document.querySelector(`[data-pass-plan="${pendingPassPlan}"]`);
       if (matchingPassButton) {
         if (!currentUser) {
+          if (launcherHandoffExpected || launcherHandoffInFlight) return;
           openAuth("login");
           setAuthFeedback(
             tr("Entre na sua conta para continuar. Depois do login, abriremos o checkout automaticamente."),
@@ -177,6 +185,7 @@
     if (!matchingButton) return;
 
     if (!currentUser) {
+      if (launcherHandoffExpected || launcherHandoffInFlight) return;
       openAuth("login");
       setAuthFeedback(
         tr("Entre na sua conta para continuar. Depois do login, abriremos o checkout automaticamente."),
@@ -309,16 +318,47 @@
     }
   }
 
+  function compactAccountIdentity(user, username = "") {
+    const cleanUsername = String(username || "").trim();
+    if (cleanUsername) return cleanUsername.startsWith("@") ? cleanUsername : `@${cleanUsername}`;
+    const email = String(user?.email || "").trim();
+    if (!email) return tr("Minha conta");
+    const [local, domain] = email.split("@");
+    if (!domain) return email.length > 18 ? `${email.slice(0, 15)}…` : email;
+    const shortLocal = local.length > 11 ? `${local.slice(0, 9)}…` : local;
+    const shortDomain = domain.length > 12 ? `${domain.slice(0, 10)}…` : domain;
+    return `${shortLocal}@${shortDomain}`;
+  }
+
+  async function refreshAccountIdentity(user) {
+    const requestId = ++accountIdentityRequest;
+    if (!user?.id || !supabaseClient) return;
+    let username = "";
+    try {
+      const { data } = await supabaseClient.from("profiles").select("username").eq("user_id", user.id).maybeSingle();
+      username = String(data?.username || "");
+    } catch (_) {}
+    if (requestId !== accountIdentityRequest || currentUser?.id !== user.id) return;
+    accountButton.textContent = compactAccountIdentity(user, username);
+    accountButton.title = user.email || tr("Conta LipeX");
+  }
+
   function updateAccountUI(user) {
     currentUser = user || null;
     if (currentUser) {
-      accountButton.textContent = tr("Minha conta");
+      accountButton.textContent = compactAccountIdentity(currentUser);
       accountButton.classList.add("logged-in");
+      accountButton.setAttribute("aria-label", tr("Gerenciar conta"));
       accountEmail.textContent = currentUser.email || tr("Conta LipeX");
       if (settingsAccountEmail) settingsAccountEmail.textContent = currentUser.email || tr("Conta LipeX");
       accountMenu.hidden = true;
+      refreshAccountIdentity(currentUser).catch(() => {});
     } else {
+      accountIdentityRequest += 1;
+      currentPassAccountSubscription = null;
+      currentPassPendingCheckout = null;
       accountButton.textContent = tr("Entrar");
+      accountButton.removeAttribute("title");
       accountButton.classList.remove("logged-in");
       accountEmail.textContent = "";
       accountMenu.hidden = true;
@@ -622,39 +662,58 @@
   lipexConfirmOk?.addEventListener("click", () => closeLipexConfirm(true));
   lipexConfirmModal?.addEventListener("click", (event) => { if (event.target === lipexConfirmModal) closeLipexConfirm(false); });
 
-  function updatePassPlanButtons(subscription) {
+  function pendingCheckoutCurrency(pending) {
+    const explicit = String(pending?.currency || pending?.custom_data?.currency || "").toUpperCase();
+    if (explicit === "USD" || explicit === "BRL") return explicit;
+    return String(pending?.provider || "").toLowerCase() === "paddle" ? "USD" : "BRL";
+  }
+
+  function updatePassPlanButtons(subscription, pendingCheckout = currentPassPendingCheckout) {
     const monthlyButton = document.querySelector('[data-pass-plan="monthly"]');
     const annualButton = document.querySelector('[data-pass-plan="annual"]');
     for (const button of [monthlyButton, annualButton]) {
       if (!button) continue;
       button.disabled = false;
-      button.classList.remove("current-plan");
+      button.classList.remove("current-plan", "pending-plan", "replace-plan");
+    }
+
+    const selectedCurrency = String(window.LipexCurrency?.getCurrency?.() || "BRL").toUpperCase();
+    const pendingPlan = String(pendingCheckout?.plan || "").toLowerCase();
+    const pendingCurrency = pendingCheckoutCurrency(pendingCheckout);
+    if (pendingCheckout && ["monthly", "annual"].includes(pendingPlan)) {
+      const pendingButton = pendingPlan === "annual" ? annualButton : monthlyButton;
+      const otherButton = pendingPlan === "annual" ? monthlyButton : annualButton;
+      if (selectedCurrency === pendingCurrency) {
+        if (pendingButton) {
+          pendingButton.textContent = msg("CONTINUAR CHECKOUT", "CONTINUE CHECKOUT");
+          pendingButton.classList.add("pending-plan");
+        }
+        if (otherButton) {
+          otherButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT");
+          otherButton.classList.add("replace-plan");
+        }
+        return;
+      }
+      // Changing provider/currency while an attempt is pending also replaces it.
+      if (monthlyButton) { monthlyButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT"); monthlyButton.classList.add("replace-plan"); }
+      if (annualButton) { annualButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT"); annualButton.classList.add("replace-plan"); }
+      return;
     }
 
     const status = String(subscription?.status || "").toLowerCase();
     const currentPlan = String(subscription?.plan || "").toLowerCase();
     const renewalCanceled = Boolean(subscription?.renewal_canceled);
-    const selectedCurrency = String(window.LipexCurrency?.getCurrency?.() || "BRL").toUpperCase();
-    const currentCurrency = String(subscription?.provider || "") === "paddle" ? "USD" : "BRL";
-
-    if (subscription && status === "pending") {
-      const pendingButton = currentPlan === "annual" ? annualButton : monthlyButton;
-      const otherButton = currentPlan === "annual" ? monthlyButton : annualButton;
-      if (selectedCurrency === currentCurrency && pendingButton) {
-        pendingButton.textContent = msg("CONTINUAR CHECKOUT", "CONTINUE CHECKOUT");
-        pendingButton.disabled = false;
-      } else if (pendingButton) {
-        pendingButton.textContent = msg("CHECKOUT PENDENTE", "CHECKOUT PENDING");
-        pendingButton.disabled = true;
-      }
-      if (otherButton) { otherButton.textContent = msg("FINALIZE O CHECKOUT PENDENTE", "FINISH PENDING CHECKOUT"); otherButton.disabled = true; }
-      return;
-    }
-
+    const currentCurrency = String(subscription?.provider || "") === "paddle" ? "USD" : String(subscription?.provider || "") === "mercadopago" ? "BRL" : "";
     const effective = ["active", "trialing", "past_due"].includes(status);
     if (!subscription || !effective) {
       if (monthlyButton) monthlyButton.textContent = tr("Assinar mensal");
       if (annualButton) annualButton.textContent = tr("Assinar anual");
+      return;
+    }
+
+    if (String(subscription?.provider || "") === "admin") {
+      if (monthlyButton) { monthlyButton.textContent = msg("PASS CORTESIA ATIVO", "COMPLIMENTARY PASS ACTIVE"); monthlyButton.disabled = true; }
+      if (annualButton) { annualButton.textContent = msg("PASS CORTESIA ATIVO", "COMPLIMENTARY PASS ACTIVE"); annualButton.disabled = true; }
       return;
     }
 
@@ -665,30 +724,21 @@
     }
 
     const sameProviderCurrency = selectedCurrency === currentCurrency;
-
     if (monthlyButton) {
       if (sameProviderCurrency && currentPlan === "monthly") {
-        monthlyButton.textContent = tr("PLANO ATUAL");
-        monthlyButton.disabled = true;
-        monthlyButton.classList.add("current-plan");
-      } else {
-        monthlyButton.textContent = currentPlan === "annual" && sameProviderCurrency ? tr("ALTERAR PARA MENSAL") : msg(`ASSINAR MENSAL EM ${selectedCurrency}`, `MONTHLY IN ${selectedCurrency}`);
-      }
+        monthlyButton.textContent = tr("PLANO ATUAL"); monthlyButton.disabled = true; monthlyButton.classList.add("current-plan");
+      } else monthlyButton.textContent = currentPlan === "annual" && sameProviderCurrency ? tr("ALTERAR PARA MENSAL") : msg(`ASSINAR MENSAL EM ${selectedCurrency}`, `MONTHLY IN ${selectedCurrency}`);
     }
     if (annualButton) {
       if (sameProviderCurrency && currentPlan === "annual") {
-        annualButton.textContent = tr("PLANO ATUAL");
-        annualButton.disabled = true;
-        annualButton.classList.add("current-plan");
-      } else {
-        annualButton.textContent = currentPlan === "monthly" && sameProviderCurrency ? tr("ALTERAR PARA ANUAL") : msg(`ASSINAR ANUAL EM ${selectedCurrency}`, `ANNUAL IN ${selectedCurrency}`);
-      }
+        annualButton.textContent = tr("PLANO ATUAL"); annualButton.disabled = true; annualButton.classList.add("current-plan");
+      } else annualButton.textContent = currentPlan === "monthly" && sameProviderCurrency ? tr("ALTERAR PARA ANUAL") : msg(`ASSINAR ANUAL EM ${selectedCurrency}`, `ANNUAL IN ${selectedCurrency}`);
     }
   }
 
   function renderPassAccount(subscription) {
     currentPassAccountSubscription = subscription || null;
-    updatePassPlanButtons(subscription);
+    updatePassPlanButtons(subscription, currentPassPendingCheckout);
     if (passAccountLoading) passAccountLoading.hidden = true;
     setSettingsFeedback(passAccountFeedback);
 
@@ -761,6 +811,7 @@
           await syncMercadoPagoPassIfNeeded({ force: options?.forceSync === true });
         }
         const data = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
+        currentPassPendingCheckout = data?.pending_checkout || null;
         renderPassAccount(data?.primary || null);
         return data;
       } catch (error) {
@@ -1317,22 +1368,49 @@
     try {
       const statusData = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
       const existing = statusData?.primary || null;
+      currentPassPendingCheckout = statusData?.pending_checkout || null;
       const existingStatus = String(existing?.status || "").toLowerCase();
       if (existing && existingStatus === "paused") {
-        throw new Error(tr("Você já possui um LipeX Pass pausado. Reative a assinatura existente em vez de criar outra."));
+        throw new Error(tr("Você já possui um LipeX Pass pausado. Reative ou cancele a assinatura existente antes de iniciar outra cobrança."));
       }
-      if (existing && existingStatus === "pending") {
-        const pendingCurrency = String(existing?.currency || (existing?.provider === "paddle" ? "USD" : "BRL")).toUpperCase();
-        const pendingPlan = String(existing?.plan || plan).toLowerCase();
-        if (pendingCurrency === selectedCurrency && pendingPlan === plan) {
+
+      const pending = currentPassPendingCheckout;
+      if (pending) {
+        const pendingCurrency = pendingCheckoutCurrency(pending);
+        const pendingPlan = String(pending?.plan || "").toLowerCase();
+        const samePendingTarget = pendingCurrency === selectedCurrency && pendingPlan === plan;
+        if (samePendingTarget) {
           setLoading(button, true, msg("Continuando checkout...", "Continuing checkout..."));
           await openPassCheckout(plan, selectedCurrency, button);
           return;
         }
-        throw new Error(msg("Existe outro checkout pendente nesta conta. Continue aquele checkout antes de iniciar uma opção diferente.", "Another checkout is pending on this account. Continue that checkout before starting a different option."));
+        const replaceConfirmed = await openLipexConfirm({
+          title: msg("Substituir checkout pendente?", "Replace pending checkout?"),
+          intro: msg("Você ainda não pagou a tentativa anterior. Ela pode ser substituída agora sem alterar sua assinatura atual.", "You have not paid the previous attempt. It can be replaced now without changing your current subscription."),
+          currentPlan: passPlanLabel(pendingPlan),
+          currentProvider: passProviderLabel(pending?.provider),
+          currentPrice: passMoney(pending?.amount, pendingCurrency, pendingPlan),
+          targetPlan: passPlanLabel(plan),
+          targetProvider: selectedCurrency === "USD" ? "Paddle" : "Mercado Pago",
+          targetPrice: "—",
+          impactHtml: msg("<strong>O checkout anterior será cancelado/substituído.</strong> Nenhuma assinatura já paga perde a renovação por causa desta ação. Somente um novo plano confirmado como ativo pode concluir uma troca de provedor.", "<strong>The previous checkout will be canceled/replaced.</strong> No paid subscription loses renewal because of this action. Only a new plan confirmed active can complete a provider switch."),
+          confirmText: msg("Substituir checkout", "Replace checkout")
+        });
+        if (!replaceConfirmed) return;
       }
 
       const preview = await callAuthedEdgeFunction("prepare-lipex-pass-switch", { action: "preview", target_plan: plan, target_currency: selectedCurrency });
+      if (preview?.mode === "continue_pending_checkout") {
+        await openPassCheckout(plan, selectedCurrency, button);
+        return;
+      }
+      if (preview?.mode === "replace_pending_checkout") {
+        setLoading(button, true, msg("Substituindo checkout...", "Replacing checkout..."));
+        await callAuthedEdgeFunction("prepare-lipex-pass-switch", { action: "commit", target_plan: plan, target_currency: selectedCurrency });
+        currentPassPendingCheckout = null;
+        await openPassCheckout(plan, selectedCurrency, button);
+        return;
+      }
       if (preview?.mode === "new_subscription") {
         await openPassCheckout(plan, selectedCurrency, button);
         return;
@@ -1437,7 +1515,7 @@
   });
 
   window.addEventListener("lipex:currencychange", () => {
-    updatePassPlanButtons(currentPassAccountSubscription);
+    updatePassPlanButtons(currentPassAccountSubscription, currentPassPendingCheckout);
   });
 
   async function consumeLauncherHandoff() {
@@ -1446,7 +1524,9 @@
     const hashParams = new URLSearchParams(rawHash);
     const tokenHash = String(hashParams.get("handoff") || "");
     const expectedUserId = String(hashParams.get("uid") || "");
-    if (!tokenHash) return { handled: false, ok: false };
+    if (!tokenHash) { launcherHandoffExpected = false; return { handled: false, ok: false }; }
+    launcherHandoffExpected = true;
+    launcherHandoffInFlight = true;
     try {
       // A launcher handoff always wins over an old browser session.
       await supabaseClient.auth.signOut({ scope: "local" }).catch(() => {});
@@ -1460,13 +1540,17 @@
       const clean = new URL(window.location.href);
       clean.hash = "lipex-pass";
       window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
+      launcherHandoffExpected = false;
       return { handled: true, ok: true, user: data?.user || data?.session?.user || null };
     } catch (error) {
       console.error("LipeX launcher→site handoff:", error);
       const clean = new URL(window.location.href); clean.hash = "lipex-pass";
       window.history.replaceState({}, "", clean.pathname + clean.search + clean.hash);
       showToast(tr("Não foi possível confirmar no site a mesma conta usada no launcher. Entre novamente antes de comprar."), "error");
+      launcherHandoffExpected = false;
       return { handled: true, ok: false };
+    } finally {
+      launcherHandoffInFlight = false;
     }
   }
 
@@ -1478,6 +1562,7 @@
     }
 
     const handoff = await consumeLauncherHandoff();
+    if (handoff?.ok && authModal?.classList.contains("open")) closeAuth();
     const { data } = await supabaseClient.auth.getSession();
     updateAccountUI(data?.session?.user || null);
     if (currentUser) {

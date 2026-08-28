@@ -1412,3 +1412,50 @@ html[data-currency="usd"] .lipex-pass-note-usd{display:inline}
 .first-visit-modal{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:22px;background:rgba(0,3,7,.58);backdrop-filter:blur(12px) saturate(.72)}.first-visit-modal[hidden]{display:none!important}.first-visit-card{width:min(100%,520px);border:1px solid #233545;border-radius:20px;background:linear-gradient(160deg,#080e15,#030609 70%);padding:34px;box-shadow:0 35px 120px rgba(0,0,0,.72)}.first-visit-brand{display:flex;align-items:center;gap:11px;margin-bottom:28px}.first-visit-brand img{width:42px;height:42px;object-fit:contain}.first-visit-brand strong,.first-visit-brand span{display:block}.first-visit-brand strong{font-size:18px}.first-visit-brand span{font-size:8px;color:#37cfff;font-weight:900;letter-spacing:.17em}.first-visit-card h2{font-size:34px;margin:13px 0 8px;letter-spacing:-.045em}.first-visit-card>p{margin:0;color:#8494a5;font-size:12px;line-height:1.55}.first-visit-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:25px}.first-visit-options button{min-height:76px;border:1px solid #253544;border-radius:13px;background:#081019;color:#eaf3fb;text-align:left;padding:15px 17px;cursor:pointer;transition:.18s ease}.first-visit-options button:hover{border-color:#34c9ff;background:#0a1722;transform:translateY(-1px)}.first-visit-options b,.first-visit-options span{display:block}.first-visit-options b{font-size:11px;color:#43d2ff;letter-spacing:.13em}.first-visit-options span{margin-top:7px;font-size:13px;font-weight:800}
 .account-settings-card{scrollbar-width:thin;scrollbar-color:#344352 #080c10}.account-settings-card::-webkit-scrollbar{width:8px}.account-settings-card::-webkit-scrollbar-track{background:#080c10;border-radius:999px}.account-settings-card::-webkit-scrollbar-thumb{background:#344352;border-radius:999px;border:2px solid #080c10}.account-settings-card::-webkit-scrollbar-thumb:hover{background:#4d6173}
 @media(max-width:720px){.header-currency-button{min-width:50px;padding:0 9px}.first-visit-options{grid-template-columns:1fr}.lipex-pass-toolbar{justify-content:stretch;align-items:stretch;flex-direction:column}.pass-currency-button{width:100%}}
+
+/* v0.1.29 — currency menus are first-class LipeX popovers, never native-looking rows. */
+.currency-wrap{position:relative}
+.currency-menu{
+  position:absolute;
+  z-index:10060;
+  top:calc(100% + 9px);
+  right:0;
+  width:224px;
+  padding:7px;
+  border:1px solid #293442;
+  border-radius:13px;
+  background:rgba(7,10,14,.985);
+  box-shadow:0 24px 70px rgba(0,0,0,.62);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+}
+.currency-menu[hidden]{display:none!important}
+.currency-menu button{
+  width:100%;
+  min-height:44px;
+  display:grid;
+  grid-template-columns:42px 1fr auto;
+  align-items:center;
+  gap:9px;
+  padding:0 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#aab6c5;
+  text-align:left;
+  font:inherit;
+  font-size:11px;
+  cursor:pointer;
+}
+.currency-menu button:hover{background:#0d131a;color:#fff}
+.currency-menu button.active{background:#0c151d;color:#fff}
+.currency-menu .currency-code{color:var(--cyan);font-size:10px;font-weight:900;letter-spacing:.07em}
+.currency-menu b{color:var(--cyan);opacity:0;font-size:11px}
+.currency-menu button.active b{opacity:1}
+.header-currency-menu{top:calc(100% + 9px);right:0;left:auto;min-width:224px}
+.pass-currency-wrap{position:relative}
+.pass-currency-menu{top:calc(100% + 9px);right:0;left:auto;min-width:224px}
+.currency-inline-menu{top:calc(100% + 7px);right:0;left:auto;min-width:224px}
+.account-button.logged-in::after{content:'⌄';display:inline-block;margin-left:8px;color:#78d9ff;font-size:11px;transform:translateY(-1px)}
+.account-button.logged-in{max-width:190px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:720px){.currency-menu{position:fixed;right:12px;top:72px;width:min(260px,calc(100% - 24px))}.pass-currency-menu{position:absolute;top:calc(100% + 9px);right:0;width:min(260px,calc(100vw - 32px))}}
