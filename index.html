@@ -307,7 +307,7 @@
 <button aria-label="Fechar" class="auth-close" data-i18n-aria-label="Fechar" id="account-settings-close" type="button">×</button>
 <div class="auth-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span data-i18n="MINHA CONTA">MINHA CONTA</span></div>
 <h2 data-i18n="Gerenciar conta" id="account-settings-title">Gerenciar conta</h2>
-<p data-i18n="Altere sua senha ou gerencie sua conta LipeX.">Altere sua senha ou gerencie sua conta LipeX.</p>
+<p id="account-settings-intro" data-i18n="Altere sua senha ou gerencie sua conta LipeX.">Altere sua senha ou gerencie sua conta LipeX.</p>
 <div class="account-settings-email"><small data-i18n="E-mail da conta">E-mail da conta</small><strong id="settings-account-email"></strong></div>
 <section class="settings-section pass-account-section" id="pass-account-section">
 <div class="settings-section-heading"><div><span data-i18n="LIPEX PASS">LIPEX PASS</span><h3 data-i18n="Sua assinatura">Sua assinatura</h3></div></div>
@@ -324,9 +324,12 @@
 <div><small data-i18n="Plano">Plano</small><strong id="pass-account-plan">—</strong></div>
 <div><small data-i18n="Valor">Valor</small><strong id="pass-account-price">—</strong></div>
 <div><small id="pass-account-renewal-label" data-i18n="Próxima cobrança">Próxima cobrança</small><strong id="pass-account-renewal">—</strong></div>
+<div><small data-i18n="Início do período">Início do período</small><strong id="pass-account-started">—</strong></div>
+<div><small data-i18n="Última atualização">Última atualização</small><strong id="pass-account-updated">—</strong></div>
 </div>
 <p class="pass-account-note" id="pass-account-note"></p>
 <div class="pass-account-actions" id="pass-account-actions">
+<button class="settings-pass-secondary" id="pass-change-plan" type="button">Alterar plano</button>
 <button class="settings-pass-danger" id="pass-cancel-button" data-pass-action="cancel_at_period_end" type="button" data-i18n="Cancelar renovação">Cancelar renovação</button>
 </div>
 <p class="auth-feedback settings-feedback pass-account-feedback" id="pass-account-feedback"></p>
@@ -365,10 +368,29 @@
 </section>
 </div>
 </div>
+
+<div aria-hidden="true" class="lipex-confirm-modal" id="lipex-confirm-modal">
+  <div aria-labelledby="lipex-confirm-title" aria-modal="true" class="lipex-confirm-card" role="dialog">
+    <button aria-label="Fechar" class="auth-close" id="lipex-confirm-close" type="button">×</button>
+    <div class="lipex-confirm-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span>LIPEX PASS</span></div>
+    <h2 id="lipex-confirm-title">Confirmar alteração</h2>
+    <p class="lipex-confirm-intro" id="lipex-confirm-intro"></p>
+    <div class="lipex-confirm-flow" id="lipex-confirm-flow">
+      <div class="lipex-confirm-side"><small id="lipex-confirm-current-label">PLANO ATUAL</small><strong id="lipex-confirm-current-plan">—</strong><span id="lipex-confirm-current-provider">—</span><b id="lipex-confirm-current-price">—</b></div>
+      <div class="lipex-confirm-arrow">→</div>
+      <div class="lipex-confirm-side target"><small id="lipex-confirm-target-label">NOVO PLANO</small><strong id="lipex-confirm-target-plan">—</strong><span id="lipex-confirm-target-provider">—</span><b id="lipex-confirm-target-price">—</b></div>
+    </div>
+    <div class="lipex-confirm-impact" id="lipex-confirm-impact"></div>
+    <div class="lipex-confirm-actions">
+      <button class="settings-cancel-button" id="lipex-confirm-cancel" type="button">Voltar</button>
+      <button class="btn btn-primary" id="lipex-confirm-ok" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
 <div aria-live="polite" class="toast" id="toast" role="status"></div>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script src="i18n.js?v=20260826-v0126"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260826-v0126"></script>
+<script src="i18n.js?v=20260827-v0127"></script><script src="site-editor.js"></script><script src="currency.js"></script><script src="app.js?v=20260827-v0127"></script>
 </body>
 </html>
