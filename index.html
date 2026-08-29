@@ -324,7 +324,7 @@
 <p data-i18n="A compra será vinculada à sua conta e liberada no launcher." id="auth-subtitle">A compra será vinculada à sua conta e liberada no launcher.</p>
 <form id="auth-form">
 <label data-i18n="E-mail" for="auth-email">E-mail</label><input autocomplete="email" data-i18n-placeholder="seu@email.com" id="auth-email" placeholder="seu@email.com" required="" type="email"/>
-<div id="auth-password-field"><label data-i18n="Senha" for="auth-password">Senha</label><input autocomplete="current-password" data-i18n-placeholder="Sua senha" id="auth-password" minlength="6" placeholder="Sua senha" required="" type="password"/><div class="forgot-password-row"><button data-i18n="Esqueci minha senha" id="forgot-password-button" type="button">Esqueci minha senha</button></div></div>
+<div id="auth-password-field"><label data-i18n="Senha" for="auth-password">Senha</label><input autocomplete="current-password" data-i18n-placeholder="Sua senha" id="auth-password" minlength="6" placeholder="Sua senha" required="" type="password"/><div id="auth-register-fields" hidden><label for="auth-confirm-password">Confirmar senha</label><input autocomplete="new-password" id="auth-confirm-password" minlength="6" placeholder="Repita sua senha" type="password"/><label for="auth-username">Nome de usuário <small>(opcional)</small></label><input autocomplete="username" id="auth-username" maxlength="24" placeholder="seu_usuario" type="text"/></div><div class="forgot-password-row"><button data-i18n="Esqueci minha senha" id="forgot-password-button" type="button">Esqueci minha senha</button></div></div>
 <p class="auth-feedback" id="auth-feedback"></p><button class="btn btn-primary auth-submit" data-i18n="Entrar" id="auth-submit" type="submit">Entrar</button>
 </form>
 <div class="auth-switch-row"><span data-i18n="Ainda não tem conta?" id="auth-switch-text">Ainda não tem conta?</span><button data-i18n="Criar conta" id="auth-switch" type="button">Criar conta</button></div>
@@ -375,7 +375,7 @@
 <label data-i18n="Confirmar nova senha" for="confirm-password">Confirmar nova senha</label>
 <input autocomplete="new-password" data-i18n-placeholder="Repita a nova senha" id="confirm-password" minlength="6" placeholder="Repita a nova senha" required="" type="password"/>
 <p class="auth-feedback settings-feedback" id="password-feedback"></p>
-<button class="btn btn-primary settings-primary-button" data-i18n="Alterar senha" id="change-password-button" type="submit">Alterar senha</button>
+<div class="password-actions"><button class="btn btn-primary settings-primary-button" data-i18n="Alterar senha" id="change-password-button" type="submit">Alterar senha</button><button class="btn settings-pass-secondary" id="settings-password-recovery" type="button">ENVIAR E-MAIL DE RECUPERAÇÃO</button></div>
 </form>
 </section>
 <section class="settings-section danger-section">

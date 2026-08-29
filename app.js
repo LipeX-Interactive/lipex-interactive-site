@@ -63,6 +63,10 @@
   const passwordInput = document.querySelector("#auth-password");
   const passwordField = document.querySelector("#auth-password-field");
   const forgotPasswordButton = document.querySelector("#forgot-password-button");
+  const authRegisterFields = document.querySelector("#auth-register-fields");
+  const authConfirmPassword = document.querySelector("#auth-confirm-password");
+  const authUsername = document.querySelector("#auth-username");
+  const settingsPasswordRecovery = document.querySelector("#settings-password-recovery");
   const lipexConfirmModal = document.querySelector("#lipex-confirm-modal");
   const lipexConfirmCard = lipexConfirmModal?.querySelector(".lipex-confirm-card");
   const lipexConfirmClose = document.querySelector("#lipex-confirm-close");
@@ -225,6 +229,8 @@
       if (isForgot) passwordInput.value = "";
     }
     if (forgotPasswordButton) forgotPasswordButton.hidden = mode !== "login";
+    if(authRegisterFields) authRegisterFields.hidden = mode !== "register";
+    if(authConfirmPassword) authConfirmPassword.required = mode === "register";
 
     if (mode === "register") {
       authTitle.textContent = tr("Criar conta LipeX");
@@ -689,14 +695,14 @@
           pendingButton.classList.add("pending-plan");
         }
         if (otherButton) {
-          otherButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT");
+          otherButton.textContent = pending.plan === "monthly" ? msg("MIGRAR PARA ANUAL", "MIGRATE TO ANNUAL") : msg("MIGRAR PARA MENSAL", "MIGRATE TO MONTHLY");
           otherButton.classList.add("replace-plan");
         }
         return;
       }
       // Changing provider/currency while an attempt is pending also replaces it.
-      if (monthlyButton) { monthlyButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT"); monthlyButton.classList.add("replace-plan"); }
-      if (annualButton) { annualButton.textContent = msg("SUBSTITUIR CHECKOUT", "REPLACE CHECKOUT"); annualButton.classList.add("replace-plan"); }
+      if (monthlyButton) { monthlyButton.textContent = msg("MIGRAR PARA MENSAL", "MIGRATE TO MONTHLY"); monthlyButton.classList.remove("replace-plan"); }
+      if (annualButton) { annualButton.textContent = msg("MIGRAR PARA ANUAL", "MIGRATE TO ANNUAL"); annualButton.classList.remove("replace-plan"); }
       return;
     }
 
@@ -1111,11 +1117,16 @@
 
     try {
       if (mode === "register") {
+        const confirmPassword = authConfirmPassword?.value || "";
+        const username = String(authUsername?.value || "").trim().toLowerCase();
+        if(password !== confirmPassword){ setAuthFeedback(tr("As senhas não coincidem."), "error"); return; }
+        if(username && !/^[a-z0-9_]{3,24}$/.test(username)){ setAuthFeedback(tr("O nome de usuário deve ter 3 a 24 caracteres: letras minúsculas, números ou _."), "error"); return; }
+        if(username){ const {data:available,error:usernameError}=await supabaseClient.rpc("username_available",{p_username:username}); if(usernameError)throw usernameError; if(!available){setAuthFeedback(tr("Esse nome de usuário já está em uso."),"error");return;} }
         const redirectUrl = window.location.origin + window.location.pathname;
         const { data, error } = await supabaseClient.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: redirectUrl }
+          options: { emailRedirectTo: redirectUrl, data: username ? {username} : {} }
         });
 
         if (error) throw error;
@@ -1153,6 +1164,14 @@
     } finally {
       setLoading(authSubmit, false);
     }
+  });
+
+  settingsPasswordRecovery?.addEventListener("click", async()=>{
+    if(!currentUser?.email){setSettingsFeedback(passwordFeedback,tr("Entre na sua conta para recuperar a senha."),"error");return;}
+    settingsPasswordRecovery.disabled=true;setSettingsFeedback(passwordFeedback,tr("Enviando e-mail de recuperação..."));
+    try{const redirectUrl=new URL("reset-password.html",window.location.href).href;const {error}=await supabaseClient.auth.resetPasswordForEmail(currentUser.email,{redirectTo:redirectUrl});if(error)throw error;setSettingsFeedback(passwordFeedback,tr("E-mail de recuperação enviado. Confira sua caixa de entrada e o spam."),"success");}
+    catch(error){setSettingsFeedback(passwordFeedback,String(error?.message||tr("Não foi possível enviar o e-mail de recuperação.")),"error");}
+    finally{settingsPasswordRecovery.disabled=false;}
   });
 
   manageAccountButton?.addEventListener("click", openAccountSettings);
@@ -1426,9 +1445,7 @@
       const accessUntil = formatPassDate(preview?.access_until);
       const providerChanges = String(preview?.current_provider) !== String(preview?.target_provider);
       const immediateCharge = Boolean(preview?.immediate_charge);
-      const impact = preview?.mode === "same_provider_plan_change"
-        ? msg(`<strong>A assinatura atual será atualizada no ${targetProvider}.</strong> Não será criada uma segunda assinatura e esta alteração não gera cobrança imediata. A próxima renovação seguirá o novo plano.`, `<strong>Your current subscription will be updated on ${targetProvider}.</strong> A second subscription will not be created and this change does not charge immediately. Your next renewal will use the new plan.`)
-        : msg(`<strong>${providerChanges ? `O provedor mudará de ${currentProvider} para ${targetProvider} somente se o novo checkout for pago.` : `A assinatura será substituída no ${targetProvider} somente após a confirmação do novo pagamento.`}</strong> Apenas abrir ou fechar o checkout <strong>não altera a renovação atual</strong>. Depois que o novo plano for ativado, a LipeX encerra a próxima renovação do plano antigo para evitar duas cobranças recorrentes. Seu acesso atual permanece protegido. ${immediateCharge ? "Ao continuar, o novo checkout será aberto e poderá cobrar o novo plano imediatamente." : ""}`, `<strong>${providerChanges ? `The provider will change from ${currentProvider} to ${targetProvider} only if the new checkout is paid.` : `The subscription will be replaced on ${targetProvider} only after the new payment is confirmed.`}</strong> Merely opening or closing checkout <strong>does not change your current renewal</strong>. Once the new plan activates, LipeX stops the next renewal on the old plan to prevent two recurring charges. Your current access remains protected. ${immediateCharge ? "Continuing opens the new checkout, which may charge the new plan immediately." : ""}`);
+      const impact = msg(`<strong>${providerChanges ? `O provedor mudará de ${currentProvider} para ${targetProvider} somente se o novo checkout for pago.` : `A assinatura será substituída no ${targetProvider} somente após a confirmação do novo pagamento.`}</strong> Apenas abrir ou fechar o checkout <strong>não altera a renovação atual</strong>. O novo plano exige um checkout real e pode cobrar o valor do novo período imediatamente. Depois que o novo plano for ativado, a LipeX encerra a próxima renovação do plano antigo para evitar duas cobranças recorrentes. Seu acesso atual permanece protegido.`, `<strong>${providerChanges ? `The provider will change from ${currentProvider} to ${targetProvider} only if the new checkout is paid.` : `The subscription will be replaced on ${targetProvider} only after the new payment is confirmed.`}</strong> Merely opening or closing checkout <strong>does not change your current renewal</strong>. The new plan requires a real checkout and may charge the new billing period immediately. Once the new plan activates, LipeX stops the next renewal on the old plan to prevent two recurring charges. Your current access remains protected.`);
 
       const confirmed = await openLipexConfirm({
         title: msg("Confirmar alteração do LipeX Pass", "Confirm LipeX Pass change"),
@@ -1436,18 +1453,9 @@
         currentPlan: passPlanLabel(preview?.current_plan), currentProvider, currentPrice,
         targetPlan: passPlanLabel(preview?.target_plan), targetProvider, targetPrice,
         impactHtml: impact,
-        confirmText: preview?.mode === "same_provider_plan_change" ? msg("Alterar plano", "Change plan") : msg("Continuar para checkout", "Continue to checkout")
+        confirmText: msg("Continuar para checkout", "Continue to checkout")
       });
       if (!confirmed) return;
-
-      if (preview?.mode === "same_provider_plan_change") {
-        setLoading(button, true, tr("Alterando plano..."));
-        await callAuthedEdgeFunction("change-lipex-pass-plan-test", { target_plan: plan });
-        const refreshed = await callAuthedEdgeFunction("get-lipex-pass-status-test", {});
-        renderPassAccount(refreshed?.primary || null);
-        showToast(msg("Plano alterado. A próxima renovação seguirá o novo valor e período.", "Plan changed. The next renewal will use the new price and billing period."), "success");
-        return;
-      }
 
       setLoading(button, true, tr("Preparando troca..."));
       await callAuthedEdgeFunction("prepare-lipex-pass-switch", { action: "commit", target_plan: plan, target_currency: selectedCurrency });
@@ -1573,7 +1581,12 @@
     }
     continueDirectCheckoutIfReady();
 
-    supabaseClient.auth.onAuthStateChange((event, session) => {
+    
+  // Animações suaves e acessíveis de entrada ao rolar.
+  const revealTargets=[...document.querySelectorAll('.section-heading,.step,.game-card,.lipex-pass-card,.feature-card,.community-hub,.faq-section details')];
+  revealTargets.forEach(el=>el.classList.add('site-reveal'));
+  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');observer.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -5% 0px'});revealTargets.forEach(el=>observer.observe(el));}else revealTargets.forEach(el=>el.classList.add('revealed'));
+supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAccountUI(session?.user || null);
       if (session?.user) {
         if (event === "SIGNED_IN" || event === "USER_UPDATED") {
