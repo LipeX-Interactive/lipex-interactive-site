@@ -359,15 +359,15 @@
   function applyOverride(id, el, override = {}) {
     if (!el || !override || typeof override !== 'object') return;
     el.hidden = override.hidden === true;
-    const px = (field, prop) => { if (override[field] !== '' && override[field] != null && Number.isFinite(Number(override[field]))) el.style[prop] = `${Number(override[field])}px`; else el.style.removeProperty(prop); };
-    px('width','width'); px('height','height'); px('padding','padding'); px('margin','margin'); px('border_width','borderWidth'); px('border_radius','borderRadius'); px('font_size','fontSize'); px('blur','--lipex-edit-blur');
+    const px = (field, prop) => { if (override[field] !== '' && override[field] != null && Number.isFinite(Number(override[field]))) el.style.setProperty(prop, `${Number(override[field])}px`, 'important'); else el.style.removeProperty(prop); };
+    px('width','width'); px('height','height'); px('padding','padding'); px('margin','margin'); px('border_width','border-width'); px('border_radius','border-radius'); px('font_size','font-size'); px('blur','--lipex-edit-blur');
     if (override.opacity !== '' && override.opacity != null) el.style.opacity = String(clamp(Number(override.opacity),0,1)); else el.style.removeProperty('opacity');
-    if (override.color) el.style.color = override.color; else el.style.removeProperty('color');
-    if (override.background) el.style.background = override.background; else el.style.removeProperty('background');
-    if (override.border_color) el.style.borderColor = override.border_color; else el.style.removeProperty('border-color');
+    if (override.color) el.style.setProperty('color', override.color, 'important'); else el.style.removeProperty('color');
+    if (override.background) el.style.setProperty('background', override.background, 'important'); else el.style.removeProperty('background');
+    if (override.border_color) el.style.setProperty('border-color', override.border_color, 'important'); else el.style.removeProperty('border-color');
     if (override.border_width !== '' && override.border_width != null) el.style.borderStyle = 'solid';
-    if (override.font_weight) el.style.fontWeight = String(override.font_weight);
-    if (override.text_align) el.style.textAlign = override.text_align;
+    if (override.font_weight) el.style.setProperty('font-weight', String(override.font_weight), 'important');
+    if (override.text_align) el.style.setProperty('text-align', override.text_align, 'important');
     if (override.letter_spacing !== '' && override.letter_spacing != null) el.style.letterSpacing = `${Number(override.letter_spacing)}px`;
     if (override.line_height !== '' && override.line_height != null) el.style.lineHeight = String(override.line_height);
     if (override.overflow) el.style.overflow = override.overflow;

@@ -240,7 +240,7 @@
 </ul>
 <button class="buy-button lipex-pass-button" data-pass-plan="monthly" data-i18n="Assinar mensal" type="button">Assinar mensal</button>
 </article>
-<article class="lipex-pass-card featured">
+<article class="lipex-pass-card featured" data-plan-card="annual" hidden>
 <div class="lipex-pass-badge" data-i18n="MELHOR VALOR">MELHOR VALOR</div>
 <div class="lipex-pass-card-top">
 <span class="lipex-pass-kicker" data-i18n="ANUAL">ANUAL</span>
@@ -319,8 +319,8 @@
 <div aria-hidden="true" class="auth-modal" id="auth-modal">
 <div aria-labelledby="auth-title" aria-modal="true" class="auth-card" role="dialog">
 <button aria-label="Fechar" class="auth-close" data-i18n-aria-label="Fechar" id="auth-close" type="button">×</button>
-<div class="auth-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span data-i18n="CONTA LIPEX">CONTA LIPEX</span></div>
-<h2 data-i18n="Entrar na LipeX" id="auth-title">Entrar na LipeX</h2>
+<div class="auth-brand"><img alt="LipeX" src="assets/lipex-emblem.png"/><span data-i18n="CONTA LIPEX INTERACTIVE GAMES">CONTA LIPEX INTERACTIVE GAMES</span></div>
+<h2 data-i18n="Entrar na LipeX Interactive Games" id="auth-title">Entrar na LipeX Interactive Games</h2>
 <p data-i18n="A compra será vinculada à sua conta e liberada no launcher." id="auth-subtitle">A compra será vinculada à sua conta e liberada no launcher.</p>
 <form id="auth-form">
 <label data-i18n="E-mail" for="auth-email">E-mail</label><input autocomplete="email" data-i18n-placeholder="seu@email.com" id="auth-email" placeholder="seu@email.com" required="" type="email"/>
@@ -338,6 +338,15 @@
 <h2 data-i18n="Gerenciar conta" id="account-settings-title">Gerenciar conta</h2>
 <p id="account-settings-intro" data-i18n="Altere sua senha ou gerencie sua conta LipeX.">Altere sua senha ou gerencie sua conta LipeX.</p>
 <div class="account-settings-email"><small data-i18n="E-mail da conta">E-mail da conta</small><strong id="settings-account-email"></strong></div>
+<section class="settings-section profile-username-section">
+<div class="settings-section-heading"><div><span>PERFIL</span><h3>Nome de usuário</h3></div></div>
+<p class="settings-section-help">Opcional. Use de 1 a 24 caracteres sem espaços. Deixe vazio para remover.</p>
+<form id="username-settings-form" class="username-settings-form">
+<label for="settings-username">Nome de usuário</label>
+<div class="username-settings-row"><input autocomplete="username" id="settings-username" maxlength="24" placeholder="seu_usuario" type="text"/><button class="btn btn-primary settings-primary-button" id="settings-username-save" type="submit">SALVAR NOME</button></div><small class="username-settings-help">Você pode deixar em branco para remover o nome de usuário. Até 24 caracteres e sem espaços.</small>
+<p class="auth-feedback settings-feedback" id="settings-username-feedback"></p>
+</form>
+</section>
 <section class="settings-section pass-account-section" id="pass-account-section">
 <div class="settings-section-heading"><div><span data-i18n="LIPEX PASS">LIPEX PASS</span><h3 data-i18n="Sua assinatura">Sua assinatura</h3></div></div>
 <div class="pass-account-panel" id="pass-account-panel" aria-live="polite">

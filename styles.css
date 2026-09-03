@@ -915,7 +915,7 @@ body{
 
 
 /* V8 account management */
-.account-menu{display:grid;gap:8px}.account-menu[hidden]{display:none!important}.account-menu button{margin:0}.account-menu .account-menu-manage{border-color:#28465a;background:#0a141b;color:#dff9ff}.account-menu .account-menu-manage:hover{border-color:var(--cyan);background:#0c1b23}
+.account-menu{display:grid;gap:8px}.account-menu[hidden]{display:none!important}.account-menu button{margin:0}.account-menu .account-menu-manage{border-color:#365569;background:#13212b;color:#dff9ff}.account-menu .account-menu-manage:hover{border-color:var(--cyan);background:#0c1b23}
 .account-settings-modal{position:fixed;z-index:12500;inset:0;display:none;place-items:center;padding:24px;background:rgba(0,0,0,.86);backdrop-filter:blur(12px)}.account-settings-modal.open{display:grid}.account-settings-card{position:relative;width:min(100%,560px);max-height:min(88vh,820px);overflow:auto;padding:30px;border:1px solid #26323e;border-radius:20px;background:#070a0e;box-shadow:0 40px 120px rgba(0,0,0,.72)}.account-settings-card h2{font-size:34px;line-height:1.05;color:#fff;margin:14px 0 7px;letter-spacing:-.045em}.account-settings-card>p{margin:0;color:#8492a4;font-size:13px}.account-settings-email{margin-top:20px;padding:14px 16px;border:1px solid #18222c;border-radius:12px;background:#05080b}.account-settings-email small,.account-settings-email strong{display:block}.account-settings-email small{color:#667587;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}.account-settings-email strong{margin-top:4px;color:#e9f1fa;font-size:13px;word-break:break-all}.settings-section{margin-top:22px;padding-top:22px;border-top:1px solid #18212a}.settings-section-heading span{color:var(--cyan);font-size:9px;font-weight:900;letter-spacing:.16em}.settings-section-heading h3{margin:4px 0 15px;color:#fff;font-size:20px;letter-spacing:-.025em}.settings-section form{display:grid;gap:8px}.settings-section label{font-size:11px;font-weight:800;color:#c1cad5;margin-top:3px}.settings-section input{width:100%;height:46px;border:1px solid #29323d;border-radius:9px;background:#040609;color:#fff;padding:0 13px;outline:none}.settings-section input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(57,215,255,.08)}.settings-primary-button{width:100%;margin-top:6px;color:#001017;font-weight:800}.settings-feedback{min-height:19px!important;margin:3px 0!important;font-size:11px!important}.danger-section>p{color:#8794a5;font-size:12px;line-height:1.65;margin:0 0 15px}.danger-section .settings-section-heading span{color:#ff7f91}.danger-outline-button,.danger-button,.settings-cancel-button{min-height:44px;border-radius:10px;padding:0 15px;font-weight:800;cursor:pointer;transition:.18s ease}.danger-outline-button{border:1px solid #65313a;background:#12090b;color:#ff9cab}.danger-outline-button:hover{border-color:#d85066;background:#190c0f}.delete-confirmation{margin-top:15px;padding:17px;border:1px solid #49252c;border-radius:13px;background:#0f0709}.delete-confirmation>strong{display:block;color:#ffb3bf;font-size:13px}.delete-confirmation>p{color:#8f7b80;font-size:11px;margin:5px 0 11px}.delete-actions{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:7px}.danger-button{border:1px solid #bd4155;background:#a92339;color:#fff}.danger-button:hover{background:#bd2942}.danger-button.loading{opacity:.65;cursor:wait}.settings-cancel-button{border:1px solid #2a3441;background:#0b0f14;color:#dce4ee}.settings-cancel-button:hover{border-color:#465465}@media(max-width:560px){.account-settings-modal{padding:12px}.account-settings-card{padding:25px 18px;border-radius:16px;max-height:92vh}.delete-actions{grid-template-columns:1fr}.danger-button,.settings-cancel-button{width:100%}}
 
 
@@ -1460,7 +1460,48 @@ html[data-currency="usd"] .lipex-pass-note-usd{display:inline}
 .account-button.logged-in{max-width:190px;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:720px){.currency-menu{position:fixed;right:12px;top:72px;width:min(260px,calc(100% - 24px))}.pass-currency-menu{position:absolute;top:calc(100% + 9px);right:0;width:min(260px,calc(100vw - 32px))}}
 
-/* v0.1.30 motion + polished controls */
+/* v0.1.31 motion + polished controls */
 html{scroll-behavior:smooth}.language-button{background:#0b1117!important;border-color:#2a3744!important;color:#edf7fd!important}.step{transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease}.step:hover{transform:translateY(-3px);background:#0a0f14;box-shadow:inset 0 0 0 1px rgba(57,215,255,.12)}.game-card{transform-origin:center;will-change:transform}.game-card:hover{transform:translateY(-4px) scale(1.012);border-color:#355069;box-shadow:0 30px 80px rgba(0,0,0,.38),0 0 0 1px rgba(57,215,255,.08)}.lipex-pass-card{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}.lipex-pass-card:hover{transform:translateY(-3px);border-color:#2caee6;box-shadow:0 22px 60px rgba(0,0,0,.32),0 0 24px rgba(34,182,238,.10)}.auth-modal.open .auth-card,.account-settings-modal.open .account-settings-card,.lipex-confirm-modal.open .lipex-confirm-card{animation:lipexModalIn .2s cubic-bezier(.2,.8,.2,1)}@keyframes lipexModalIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}.site-reveal{opacity:0;transform:translateY(16px);transition:opacity .42s ease,transform .42s cubic-bezier(.2,.75,.25,1)}.site-reveal.revealed{opacity:1;transform:none}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.site-reveal,.step,.game-card,.lipex-pass-card{transition:none!important;transform:none!important;opacity:1!important}}.password-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.password-actions>*{flex:1 1 220px}.main-nav{min-width:0;white-space:nowrap}.header-actions{white-space:nowrap}
 
 .reset-password-page{min-height:100vh;background:#030507;color:#fff}.reset-password-shell{min-height:100vh;display:grid;place-items:center;padding:24px}.reset-password-card{width:min(460px,100%);padding:28px;border:1px solid #253341;border-radius:18px;background:#090e14;box-shadow:0 30px 90px rgba(0,0,0,.45)}.reset-password-card h1{margin:8px 0 8px}.reset-password-card p{color:#8595a7}.reset-password-card form{display:grid;gap:12px}.reset-password-card label{display:grid;gap:6px;font-size:11px;font-weight:800}.reset-password-card input{background:#060a0f;border:1px solid #293645;color:#fff;border-radius:10px;padding:12px}.reset-back{display:inline-flex;margin-top:12px;text-decoration:none}
+
+/* =========================================================
+   v0.1.31 — account, password UX, monthly-only Pass and motion
+   ========================================================= */
+.account-menu{
+  width:min(360px,calc(100vw - 28px))!important;
+  min-width:300px;
+  padding:16px!important;
+  background:linear-gradient(180deg,#111b24,#0d151d)!important;
+  border-color:#294052!important;
+}
+.account-menu strong,#account-email{
+  max-width:100%;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+  white-space:normal!important;
+  line-height:1.42;
+}
+.account-menu button{min-height:44px;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+@media(max-width:420px){.account-menu{min-width:0;width:min(330px,calc(100vw - 20px))!important}}
+
+.username-settings-form{display:grid;gap:9px}.username-settings-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.username-settings-row input{min-width:0}.settings-section-help{margin:-4px 0 12px;color:#8190a1;font-size:11px;line-height:1.55}.username-settings-row .settings-primary-button{min-width:145px;white-space:nowrap}@media(max-width:620px){.username-settings-row{grid-template-columns:1fr}.username-settings-row .settings-primary-button{width:100%}}
+
+.password-input-wrap{position:relative;display:block;width:100%}.password-input-wrap>input{width:100%!important;padding-right:46px!important}.password-visibility-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#8da1b3;cursor:pointer;z-index:2}.password-visibility-toggle:hover,.password-visibility-toggle[aria-pressed="true"]{background:#101923;color:#dff8ff}.password-visibility-toggle:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}.password-visibility-toggle svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.lipex-pass-grid.single-plan{grid-template-columns:minmax(0,680px)!important;justify-content:center!important}.lipex-pass-grid.single-plan .lipex-pass-card{width:100%}
+
+.reset-password-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#91eaff;font-size:10px;font-weight:900;letter-spacing:.11em}.reset-password-brand img{width:32px;height:32px;object-fit:contain}.reset-back{display:flex!important;align-items:center!important;justify-content:center!important;min-height:38px!important;line-height:1!important;padding:0 14px!important;text-decoration:none!important}
+
+/* The reveal system is initialized independently of authentication in app.js. */
+.site-reveal{opacity:0;transform:translateY(18px) scale(.992);filter:blur(2px);transition:opacity .58s cubic-bezier(.22,.75,.28,1),transform .58s cubic-bezier(.22,.75,.28,1),filter .58s ease;transition-delay:var(--reveal-delay,0ms)}
+.site-reveal.revealed{opacity:1;transform:none;filter:none}
+.hero-copy .site-reveal{transform:translateY(22px)}
+.hero-panel.site-reveal{transform:translateX(22px) scale(.985)}
+.hero-panel.site-reveal.revealed{transform:none}
+.nav a,.account-button,.currency-button,.language-button{transition:color .22s ease,border-color .22s ease,background .22s ease,transform .22s ease,box-shadow .22s ease!important}
+.nav a:hover{transform:translateY(-1px)}
+.community-card,.feature-card,.lipex-pass-card,.faq-section details{transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease}
+.community-card:hover,.feature-card:hover,.lipex-pass-card:hover{transform:translateY(-4px);border-color:#345267;box-shadow:0 26px 70px rgba(0,0,0,.34),0 0 0 1px rgba(57,215,255,.06)}
+.faq-section details:hover{border-color:#32495d;background:#0a0f14}
+@media(prefers-reduced-motion:reduce){.site-reveal,.site-reveal.revealed{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}.community-card,.feature-card,.lipex-pass-card,.game-card,.step,.nav a{transition:none!important;transform:none!important}}

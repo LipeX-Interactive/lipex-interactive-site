@@ -19,6 +19,10 @@
   const accountSettingsIntro = document.querySelector("#account-settings-intro");
   const accountSettingsClose = document.querySelector("#account-settings-close");
   const settingsAccountEmail = document.querySelector("#settings-account-email");
+  const settingsUsernameForm = document.querySelector("#username-settings-form");
+  const settingsUsernameInput = document.querySelector("#settings-username");
+  const settingsUsernameSave = document.querySelector("#settings-username-save");
+  const settingsUsernameFeedback = document.querySelector("#settings-username-feedback");
   const passAccountLoading = document.querySelector("#pass-account-loading");
   const passAccountEmpty = document.querySelector("#pass-account-empty");
   const passAccountDetails = document.querySelector("#pass-account-details");
@@ -233,7 +237,7 @@
     if(authConfirmPassword) authConfirmPassword.required = mode === "register";
 
     if (mode === "register") {
-      authTitle.textContent = tr("Criar conta LipeX");
+      authTitle.textContent = tr("Criar conta LipeX Interactive Games");
       authSubtitle.textContent = tr("Use o mesmo e-mail que você usará no LipeX Launcher.");
       authSubmit.textContent = tr("Criar conta");
       authSwitchText.textContent = tr("Já tem uma conta?");
@@ -245,7 +249,7 @@
       authSwitchText.textContent = tr("Lembrou sua senha?");
       authSwitch.textContent = tr("Entrar");
     } else {
-      authTitle.textContent = tr("Entrar na LipeX");
+      authTitle.textContent = tr("Entrar na LipeX Interactive Games");
       authSubtitle.textContent = tr("A compra será vinculada à sua conta e liberada no launcher.");
       authSubmit.textContent = tr("Entrar");
       authSwitchText.textContent = tr("Ainda não tem conta?");
@@ -282,7 +286,7 @@
     if (accountSettingsIntro) accountSettingsIntro.textContent = passFocus
       ? msg("Acompanhe seu plano, cobrança e renovação em um só lugar.", "Review your plan, billing and renewal in one place.")
       : tr("Altere sua senha ou gerencie sua conta LipeX.");
-    if (settingsAccountEmail) settingsAccountEmail.textContent = currentUser.email || tr("Conta LipeX");
+    if (settingsAccountEmail) settingsAccountEmail.textContent = currentUser.email || tr("Conta LipeX Interactive Games");
     if (accountMenu) accountMenu.hidden = true;
     accountSettingsModal.classList.add("open");
     accountSettingsModal.setAttribute("aria-hidden", "false");
@@ -293,6 +297,8 @@
     setSettingsFeedback(passwordFeedback);
     setSettingsFeedback(deleteFeedback);
     setSettingsFeedback(passAccountFeedback);
+    setSettingsFeedback(settingsUsernameFeedback);
+    refreshAccountIdentity(currentUser).catch(() => {});
     refreshPassAccount({ sync: true }).catch(() => {});
   }
 
@@ -346,7 +352,8 @@
     } catch (_) {}
     if (requestId !== accountIdentityRequest || currentUser?.id !== user.id) return;
     accountButton.textContent = compactAccountIdentity(user, username);
-    accountButton.title = user.email || tr("Conta LipeX");
+    accountButton.title = user.email || tr("Conta LipeX Interactive Games");
+    if (settingsUsernameInput) settingsUsernameInput.value = username;
   }
 
   function updateAccountUI(user) {
@@ -355,8 +362,8 @@
       accountButton.textContent = compactAccountIdentity(currentUser);
       accountButton.classList.add("logged-in");
       accountButton.setAttribute("aria-label", tr("Gerenciar conta"));
-      accountEmail.textContent = currentUser.email || tr("Conta LipeX");
-      if (settingsAccountEmail) settingsAccountEmail.textContent = currentUser.email || tr("Conta LipeX");
+      accountEmail.textContent = currentUser.email || tr("Conta LipeX Interactive Games");
+      if (settingsAccountEmail) settingsAccountEmail.textContent = currentUser.email || tr("Conta LipeX Interactive Games");
       accountMenu.hidden = true;
       refreshAccountIdentity(currentUser).catch(() => {});
     } else {
@@ -666,7 +673,7 @@
   lipexConfirmClose?.addEventListener("click", () => closeLipexConfirm(false));
   lipexConfirmCancel?.addEventListener("click", () => closeLipexConfirm(false));
   lipexConfirmOk?.addEventListener("click", () => closeLipexConfirm(true));
-  lipexConfirmModal?.addEventListener("click", (event) => { if (event.target === lipexConfirmModal) closeLipexConfirm(false); });
+  bindBackdropClose(lipexConfirmModal, () => closeLipexConfirm(false));
 
   function pendingCheckoutCurrency(pending) {
     const explicit = String(pending?.currency || pending?.custom_data?.currency || "").toUpperCase();
@@ -884,6 +891,15 @@
       if (!response.ok) return;
       const payload = await response.json().catch(() => null);
       const plans = payload?.plans || {};
+      const availability = { monthly: payload?.availability?.monthly !== false, annual: payload?.availability?.annual === true };
+      for (const plan of ["monthly", "annual"]) {
+        const card = document.querySelector(`[data-pass-plan="${plan}"]`)?.closest(".lipex-pass-card");
+        if (card) {
+          card.hidden = availability[plan] === false;
+          card.dataset.planAvailable = String(availability[plan] !== false);
+        }
+      }
+      document.querySelector(".lipex-pass-grid")?.classList.toggle("single-plan", availability.monthly !== availability.annual);
       for (const plan of ["monthly", "annual"]) {
         const button = document.querySelector(`[data-pass-plan="${plan}"]`);
         const card = button?.closest(".lipex-pass-card");
@@ -1050,6 +1066,38 @@
     );
   }
 
+  function installPasswordVisibilityToggles(root = document) {
+    root.querySelectorAll('input[type="password"]').forEach((input) => {
+      if (input.dataset.visibilityToggleInstalled === "true") return;
+      input.dataset.visibilityToggleInstalled = "true";
+      const wrap = document.createElement("span");
+      wrap.className = "password-input-wrap";
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "password-visibility-toggle";
+      button.setAttribute("aria-label", tr("Mostrar senha"));
+      button.setAttribute("aria-pressed", "false");
+      const renderEye = (visible) => {
+        button.innerHTML = visible
+          ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.7a2 2 0 0 0 2.7 2.7"/><path d="M9.9 4.2A10.7 10.7 0 0 1 12 4c5.2 0 8.7 4.4 9 7.5a10.8 10.8 0 0 1-2.3 4.5"/><path d="M6.2 6.2C4.3 7.5 3.2 9.5 3 11.5 3.3 14.6 6.8 19 12 19c1.4 0 2.7-.3 3.8-.8"/></svg>'
+          : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.3-6 9-6 9 6 9 6-3.3 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>';
+      };
+      renderEye(false);
+      button.addEventListener("click", () => {
+        const showing = input.type === "text";
+        input.type = showing ? "password" : "text";
+        button.setAttribute("aria-pressed", String(!showing));
+        button.setAttribute("aria-label", tr(showing ? "Mostrar senha" : "Ocultar senha"));
+        renderEye(!showing);
+        input.focus({ preventScroll: true });
+      });
+      wrap.appendChild(button);
+    });
+  }
+  installPasswordVisibilityToggles();
+
   accountButton?.addEventListener("click", () => {
     if (!configReady) {
       showToast(tr("A conexão com o Supabase ainda precisa ser finalizada."), "error");
@@ -1070,9 +1118,18 @@
   });
 
   authClose?.addEventListener("click", closeAuth);
-  authModal?.addEventListener("click", (event) => {
-    if (event.target === authModal) closeAuth();
-  });
+  function bindBackdropClose(modal, closeFn) {
+    if (!modal) return;
+    let pressStartedOnBackdrop = false;
+    modal.addEventListener("pointerdown", (event) => { pressStartedOnBackdrop = event.target === modal; });
+    modal.addEventListener("pointerup", (event) => {
+      const shouldClose = pressStartedOnBackdrop && event.target === modal;
+      pressStartedOnBackdrop = false;
+      if (shouldClose) closeFn();
+    });
+    modal.addEventListener("pointercancel", () => { pressStartedOnBackdrop = false; });
+  }
+  bindBackdropClose(authModal, closeAuth);
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (accountSettingsModal?.classList.contains("open")) { closeAccountSettings(); return; }
@@ -1118,9 +1175,10 @@
     try {
       if (mode === "register") {
         const confirmPassword = authConfirmPassword?.value || "";
-        const username = String(authUsername?.value || "").trim().toLowerCase();
+        const usernameRaw = String(authUsername?.value || "");
+        const username = usernameRaw.trim();
         if(password !== confirmPassword){ setAuthFeedback(tr("As senhas não coincidem."), "error"); return; }
-        if(username && !/^[a-z0-9_]{3,24}$/.test(username)){ setAuthFeedback(tr("O nome de usuário deve ter 3 a 24 caracteres: letras minúsculas, números ou _."), "error"); return; }
+        if(usernameRaw !== username || (username && !/^[^\s\x00-\x1F\x7F]{1,24}$/u.test(username))){ setAuthFeedback(tr("O nome de usuário é opcional, pode ter até 24 caracteres e não pode conter espaços."), "error"); return; }
         if(username){ const {data:available,error:usernameError}=await supabaseClient.rpc("username_available",{p_username:username}); if(usernameError)throw usernameError; if(!available){setAuthFeedback(tr("Esse nome de usuário já está em uso."),"error");return;} }
         const redirectUrl = window.location.origin + window.location.pathname;
         const { data, error } = await supabaseClient.auth.signUp({
@@ -1166,6 +1224,33 @@
     }
   });
 
+  settingsUsernameForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supabaseClient || !currentUser?.id) return;
+    const usernameRaw = String(settingsUsernameInput?.value || "");
+    const username = usernameRaw.trim();
+    if (usernameRaw !== username || (username && !/^[^\s\x00-\x1F\x7F]{1,24}$/u.test(username))) {
+      setSettingsFeedback(settingsUsernameFeedback, tr("Use até 24 caracteres e não use espaços."), "error");
+      return;
+    }
+    setLoading(settingsUsernameSave, true, tr("Salvando..."));
+    setSettingsFeedback(settingsUsernameFeedback);
+    try {
+      if (username) {
+        const { data: available, error: availableError } = await supabaseClient.rpc("username_available", { p_username: username });
+        if (availableError) throw availableError;
+        if (!available) throw new Error(tr("Esse nome de usuário já está em uso."));
+      }
+      const { error } = await supabaseClient.from("profiles").update({ username: username || null }).eq("user_id", currentUser.id);
+      if (error) throw error;
+      await refreshAccountIdentity(currentUser);
+      setSettingsFeedback(settingsUsernameFeedback, username ? tr("Nome de usuário atualizado.") : tr("Nome de usuário removido."), "success");
+      showToast(username ? tr("Nome de usuário atualizado.") : tr("Nome de usuário removido."), "success");
+    } catch (error) {
+      setSettingsFeedback(settingsUsernameFeedback, String(error?.message || tr("Não foi possível atualizar o nome de usuário.")), "error");
+    } finally { setLoading(settingsUsernameSave, false); }
+  });
+
   settingsPasswordRecovery?.addEventListener("click", async()=>{
     if(!currentUser?.email){setSettingsFeedback(passwordFeedback,tr("Entre na sua conta para recuperar a senha."),"error");return;}
     settingsPasswordRecovery.disabled=true;setSettingsFeedback(passwordFeedback,tr("Enviando e-mail de recuperação..."));
@@ -1176,9 +1261,7 @@
 
   manageAccountButton?.addEventListener("click", openAccountSettings);
   accountSettingsClose?.addEventListener("click", closeAccountSettings);
-  accountSettingsModal?.addEventListener("click", (event) => {
-    if (event.target === accountSettingsModal) closeAccountSettings();
-  });
+  bindBackdropClose(accountSettingsModal, closeAccountSettings);
 
 
   passCancelButton?.addEventListener("click", () => managePassAccount("cancel_at_period_end", passCancelButton));
@@ -1379,6 +1462,10 @@
     if (!supabaseClient || !configReady) { showToast(tr("A conexão do site com o Supabase ainda não foi finalizada."), "error"); return; }
     const plan = String(button.dataset.passPlan || "").toLowerCase();
     if (!["monthly", "annual"].includes(plan)) return;
+    if (button.closest(".lipex-pass-card")?.dataset.planAvailable === "false" || button.closest(".lipex-pass-card")?.hidden) {
+      showToast(tr("Este plano do LipeX Pass está temporariamente indisponível para novas assinaturas."), "info");
+      return;
+    }
     if (!currentUser) { pendingPassPlan = plan; openAuth("login"); setAuthFeedback(tr("Entre na sua conta antes de assinar. O LipeX Pass será vinculado a ela."), "info"); return; }
 
     const selectedCurrency = String(pendingPassCurrency || window.LipexCurrency?.getCurrency?.() || "BRL").toUpperCase() === "USD" ? "USD" : "BRL";
@@ -1581,12 +1668,7 @@
     }
     continueDirectCheckoutIfReady();
 
-    
-  // Animações suaves e acessíveis de entrada ao rolar.
-  const revealTargets=[...document.querySelectorAll('.section-heading,.step,.game-card,.lipex-pass-card,.feature-card,.community-hub,.faq-section details')];
-  revealTargets.forEach(el=>el.classList.add('site-reveal'));
-  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('revealed');observer.unobserve(e.target)}}),{threshold:.12,rootMargin:'0px 0px -5% 0px'});revealTargets.forEach(el=>observer.observe(el));}else revealTargets.forEach(el=>el.classList.add('revealed'));
-supabaseClient.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       updateAccountUI(session?.user || null);
       if (session?.user) {
         if (event === "SIGNED_IN" || event === "USER_UPDATED") {
@@ -1597,5 +1679,28 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     });
   }
 
+  function initSiteAnimations() {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const selector = '.hero-copy > *, .hero-panel, .section-heading, .step, .game-card, .lipex-pass-card, .community-hub, .community-card, .feature-card, .faq-section details, .footer > *';
+    const revealTargets = [...document.querySelectorAll(selector)];
+    revealTargets.forEach((el, index) => {
+      el.classList.add('site-reveal');
+      el.style.setProperty('--reveal-delay', `${Math.min(index % 5, 4) * 55}ms`);
+    });
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      revealTargets.forEach(el => el.classList.add('revealed'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: .09, rootMargin: '0px 0px -7% 0px' });
+    revealTargets.forEach(el => observer.observe(el));
+  }
+
+  initSiteAnimations();
   initializeAuth();
 })();

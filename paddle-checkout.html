@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Checkout • LipeX Interactive Games</title>
+  <style>
+    :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#06090d;color:#eef7ff;font-family:Inter,Segoe UI,Arial,sans-serif}.shell{width:min(460px,92vw);padding:28px;border:1px solid #243443;border-radius:18px;background:#0b1117;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.45)}img{width:58px;height:58px;object-fit:contain}.brand{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:18px}.brand div{text-align:left}.brand b{display:block;font-size:15px}.brand span{font-size:9px;color:#5fcfff;font-weight:800;letter-spacing:.08em}h1{font-size:21px;margin:0 0 8px}p{color:#8798aa;font-size:12px;line-height:1.55;margin:0}.status{margin-top:18px;padding:11px;border-radius:10px;background:#101922;color:#9eb0c0}.error{color:#ff8290;border:1px solid #582b33;background:#1b0e12}button{margin-top:14px;border:1px solid #2b4659;border-radius:9px;background:#102331;color:#eafbff;padding:10px 14px;font-weight:800;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="brand"><img src="assets/lipex-emblem.png" alt="LipeX"><div><b>LipeX Interactive Games</b><span>CHECKOUT SEGURO • PADDLE</span></div></div>
+    <h1>Preparando seu checkout…</h1>
+    <p>Esta página existe somente para abrir o checkout oficial do Paddle. Você não precisa fazer login novamente.</p>
+    <div id="status" class="status">Conectando ao Paddle…</div>
+    <button id="retry" hidden type="button">TENTAR NOVAMENTE</button>
+  </main>
+  <script src="config.js"></script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script src="paddle-checkout.js?v=20260901-v0131"></script>
+</body>
+</html>
