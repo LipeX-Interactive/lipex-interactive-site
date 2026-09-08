@@ -893,10 +893,18 @@
       const plans = payload?.plans || {};
       const availability = { monthly: payload?.availability?.monthly !== false, annual: payload?.availability?.annual === true };
       for (const plan of ["monthly", "annual"]) {
-        const card = document.querySelector(`[data-pass-plan="${plan}"]`)?.closest(".lipex-pass-card");
+        const button = document.querySelector(`[data-pass-plan="${plan}"]`);
+        const card = button?.closest(".lipex-pass-card");
+        const available = availability[plan] !== false;
         if (card) {
-          card.hidden = availability[plan] === false;
-          card.dataset.planAvailable = String(availability[plan] !== false);
+          card.hidden = !available;
+          card.classList.toggle("is-plan-unavailable", !available);
+          card.dataset.planAvailable = String(available);
+          card.setAttribute("aria-hidden", String(!available));
+        }
+        if (button) {
+          button.disabled = !available;
+          button.setAttribute("aria-disabled", String(!available));
         }
       }
       document.querySelector(".lipex-pass-grid")?.classList.toggle("single-plan", availability.monthly !== availability.annual);
@@ -1681,24 +1689,73 @@
 
   function initSiteAnimations() {
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-    const selector = '.hero-copy > *, .hero-panel, .section-heading, .step, .game-card, .lipex-pass-card, .community-hub, .community-card, .feature-card, .faq-section details, .footer > *';
-    const revealTargets = [...document.querySelectorAll(selector)];
-    revealTargets.forEach((el, index) => {
-      el.classList.add('site-reveal');
-      el.style.setProperty('--reveal-delay', `${Math.min(index % 5, 4) * 55}ms`);
-    });
-    if (reduceMotion || !('IntersectionObserver' in window)) {
-      revealTargets.forEach(el => el.classList.add('revealed'));
-      return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
+    const groups = [
+      ['.hero-copy > *', 'motion-up', 75],
+      ['#inicio .community-hub', 'motion-right', 0],
+      ['#recursos .section-label, #como-funciona .section-heading, #jogos .section-heading, #lipex-pass .section-heading, #comunidade .section-heading, .faq-section .section-heading', 'motion-clip', 0],
+      ['#recursos .feature-card', 'motion-up', 85],
+      ['#como-funciona .step', 'motion-up', 95],
+      ['#jogos .game-card', 'motion-scale', 105],
+      ['#lipex-pass .lipex-pass-card', 'motion-up', 115],
+      ['#comunidade .social-card:nth-child(odd)', 'motion-left', 90],
+      ['#comunidade .social-card:nth-child(even)', 'motion-right', 90],
+      ['.faq-section details', 'motion-up', 70],
+      ['.footer > *', 'motion-up', 65],
+    ];
+    const revealTargets = [];
+    for (const [selector, motion, stagger] of groups) {
+      [...document.querySelectorAll(selector)].forEach((el, index) => {
+        if (el.dataset.motionBound === '1') return;
+        el.dataset.motionBound = '1';
+        el.classList.add('site-motion', motion);
+        el.style.setProperty('--motion-delay', `${Math.min(index, 6) * stagger}ms`);
+        revealTargets.push(el);
       });
-    }, { threshold: .09, rootMargin: '0px 0px -7% 0px' });
-    revealTargets.forEach(el => observer.observe(el));
+    }
+
+    // Decorative background lights move independently from the content. This is
+    // intentionally subtle: the page feels alive without looking like a template.
+    const armAnimations = () => {
+      document.body.classList.add('site-motion-ready');
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        revealTargets.forEach(el => el.classList.add('is-visible'));
+        return;
+      }
+
+      // Paint the hidden state for one complete frame before observing. Some
+      // browsers otherwise coalesce hidden + visible into a single paint, which
+      // makes the page look static even though the transition rules exist.
+      requestAnimationFrame(() => {
+        const observer = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        }, { threshold: .13, rootMargin: '0px 0px -9% 0px' });
+        revealTargets.forEach(el => observer.observe(el));
+      });
+    };
+    requestAnimationFrame(armAnimations);
+
+    // A tiny scroll-linked drift in the hero gives the same "the page is moving
+    // with me" feeling as modern product sites, but is capped to avoid nausea.
+    const heroPanel = document.querySelector('#inicio .community-hub');
+    const heroCopy = document.querySelector('.hero-copy');
+    let ticking = false;
+    const updateHeroDrift = () => {
+      ticking = false;
+      const y = Math.max(0, Math.min(window.scrollY || 0, 720));
+      const progress = y / 720;
+      if (heroPanel) heroPanel.style.setProperty('--scroll-drift', `${Math.round(progress * 18)}px`);
+      if (heroCopy) heroCopy.style.setProperty('--scroll-drift', `${Math.round(progress * 10)}px`);
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateHeroDrift);
+    }, { passive: true });
+    updateHeroDrift();
   }
 
   initSiteAnimations();

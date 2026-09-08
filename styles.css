@@ -1505,3 +1505,73 @@ html{scroll-behavior:smooth}.language-button{background:#0b1117!important;border
 .community-card:hover,.feature-card:hover,.lipex-pass-card:hover{transform:translateY(-4px);border-color:#345267;box-shadow:0 26px 70px rgba(0,0,0,.34),0 0 0 1px rgba(57,215,255,.06)}
 .faq-section details:hover{border-color:#32495d;background:#0a0f14}
 @media(prefers-reduced-motion:reduce){.site-reveal,.site-reveal.revealed{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}.community-card,.feature-card,.lipex-pass-card,.game-card,.step,.nav a{transition:none!important;transform:none!important}}
+
+/* ===== v0.1.32 — plano anual realmente ausente do MVP ===== */
+.lipex-pass-card[hidden],
+.lipex-pass-card.is-plan-unavailable{display:none!important}
+
+/* ===== v0.1.32 — motion system: perceptível, suave e profissional ===== */
+.site-motion-ready .site-motion{
+  opacity:0;
+  filter:blur(7px);
+  transition:
+    opacity .72s cubic-bezier(.2,.7,.2,1) var(--motion-delay,0ms),
+    transform .82s cubic-bezier(.16,1,.3,1) var(--motion-delay,0ms),
+    filter .72s ease var(--motion-delay,0ms);
+  will-change:opacity,transform,filter;
+}
+.site-motion-ready .site-motion.motion-up{transform:translate3d(0,42px,0) scale(.985)}
+.site-motion-ready .site-motion.motion-left{transform:translate3d(-52px,18px,0) scale(.985)}
+.site-motion-ready .site-motion.motion-right{transform:translate3d(52px,18px,0) scale(.985)}
+.site-motion-ready .site-motion.motion-scale{transform:translate3d(0,28px,0) scale(.925)}
+.site-motion-ready .site-motion.motion-clip{transform:translate3d(0,34px,0);clip-path:inset(0 0 100% 0 round 10px)}
+.site-motion-ready .site-motion.is-visible{
+  opacity:1;
+  filter:blur(0);
+  transform:translate3d(0,0,0) scale(1);
+  clip-path:inset(0 0 0 0 round 0);
+}
+.hero-copy,#inicio .community-hub{translate:0 calc(var(--scroll-drift,0px) * -1)}
+.hero-copy{transition:translate .12s linear}
+#inicio .community-hub{transition:translate .12s linear}
+.section-heading.is-visible .eyebrow i{animation:lipexAccentPulse .72s .18s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lipexAccentPulse{0%{transform:scaleX(.1);opacity:.25}100%{transform:scaleX(1);opacity:1}}
+.game-card,.feature-card,.social-card,.step,.lipex-pass-card,.faq-section details{backface-visibility:hidden}
+.game-card:hover,.feature-card:hover,.social-card:hover,.step:hover,.lipex-pass-card:hover{
+  transform:translateY(-6px) scale(1.012);
+}
+@media(prefers-reduced-motion:reduce){
+  .site-motion-ready .site-motion,.site-motion-ready .site-motion.is-visible{
+    opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important;transition:none!important
+  }
+  .hero-copy,#inicio .community-hub{translate:none!important;transition:none!important}
+}
+
+/* v0.1.32 — secondary motion inside revealed blocks (not just whole-card fades). */
+.site-motion-ready .game-card.site-motion .game-media img{
+  transform:scale(1.075);
+  filter:saturate(.86) brightness(.88);
+  transition:transform 1.05s cubic-bezier(.16,1,.3,1) calc(var(--motion-delay,0ms) + 90ms),filter .9s ease calc(var(--motion-delay,0ms) + 90ms);
+}
+.site-motion-ready .game-card.site-motion.is-visible .game-media img{transform:scale(1);filter:saturate(1) brightness(1)}
+.site-motion-ready .step.site-motion>span{
+  transform:translateY(10px) scale(.72) rotate(-8deg);
+  opacity:.2;
+  transition:transform .65s cubic-bezier(.16,1,.3,1) calc(var(--motion-delay,0ms) + 120ms),opacity .55s ease calc(var(--motion-delay,0ms) + 120ms);
+}
+.site-motion-ready .step.site-motion.is-visible>span{transform:translateY(0) scale(1) rotate(0);opacity:1}
+.site-motion-ready .feature-card.site-motion .feature-icon,
+.site-motion-ready .social-card.site-motion .social-icon{
+  transform:translateY(9px) scale(.82);
+  opacity:.25;
+  transition:transform .68s cubic-bezier(.16,1,.3,1) calc(var(--motion-delay,0ms) + 110ms),opacity .55s ease calc(var(--motion-delay,0ms) + 110ms);
+}
+.site-motion-ready .feature-card.site-motion.is-visible .feature-icon,
+.site-motion-ready .social-card.site-motion.is-visible .social-icon{transform:translateY(0) scale(1);opacity:1}
+.site-motion-ready .faq-section details.site-motion summary::after{transition:transform .35s ease,color .35s ease}
+@media(prefers-reduced-motion:reduce){
+  .site-motion-ready .game-card.site-motion .game-media img,
+  .site-motion-ready .step.site-motion>span,
+  .site-motion-ready .feature-card.site-motion .feature-icon,
+  .site-motion-ready .social-card.site-motion .social-icon{transform:none!important;filter:none!important;opacity:1!important;transition:none!important}
+}
