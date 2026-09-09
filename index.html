@@ -6,7 +6,7 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <meta content="LipeX Interactive Games — jogos interativos para TikTok LIVE com launcher próprio, comunidade para streamers e ativação automática." name="description"/>
 <title>LipeX Interactive Games</title>
-<link href="styles.css?v=20260907-v0132" rel="stylesheet"/>
+<link href="styles.css?v=20260907-v0133" rel="stylesheet"/>
 </head>
 <body data-title-pt="LipeX Interactive Games">
 <div class="payment-banner" hidden="" id="payment-banner"></div>
@@ -225,7 +225,7 @@
     </div>
   </div>
 </div>
-<div class="lipex-pass-grid">
+<div class="lipex-pass-grid single-plan">
 <article class="lipex-pass-card">
 <div class="lipex-pass-card-top">
 <span class="lipex-pass-kicker" data-i18n="MENSAL">MENSAL</span>
@@ -426,9 +426,39 @@
   </div>
 </div>
 <div aria-live="polite" class="toast" id="toast" role="status"></div>
+<script id="lipex-motion-bootstrap-v0133">
+(()=>{
+  const groups=[
+    ['.hero-copy > *','up',70],['#inicio .community-hub','right',0],
+    ['#recursos .section-label, #como-funciona .section-heading, #jogos .section-heading, #lipex-pass .section-heading, #comunidade .section-heading, .faq-section .section-heading','clip',0],
+    ['#recursos .feature-card','up',90],['#como-funciona .step','up',95],
+    ['#jogos .game-card','scale',110],['#lipex-pass .lipex-pass-card','up',0],
+    ['#comunidade .social-card:nth-child(odd)','left',85],['#comunidade .social-card:nth-child(even)','right',85],
+    ['.faq-section details','up',70],['.footer > *','up',65]
+  ];
+  const nodes=[];
+  for(const [selector,motion,stagger] of groups){
+    document.querySelectorAll(selector).forEach((el,i)=>{
+      if(el.dataset.lipexMotionV133==='1')return;
+      el.dataset.lipexMotionV133='1';el.classList.add('lipex-motion-node',`lipex-motion-${motion}`);
+      el.style.setProperty('--lipex-motion-delay',`${Math.min(i,7)*stagger}ms`);nodes.push(el);
+    });
+  }
+  if(!nodes.length)return;
+  document.body.classList.add('lipex-motion-v133');
+  // Force one complete hidden-state paint before any reveal.
+  void document.body.offsetHeight;
+  const reveal=el=>{if(el.classList.contains('lipex-motion-in'))return;el.classList.add('lipex-motion-in')};
+  if(!('IntersectionObserver' in window)){setTimeout(()=>nodes.forEach(reveal),100);return;}
+  const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){reveal(entry.target);observer.unobserve(entry.target)}}},{threshold:.10,rootMargin:'0px 0px -8% 0px'});
+  nodes.forEach(el=>observer.observe(el));
+  // Guarantee a visible entrance animation for above-the-fold content.
+  setTimeout(()=>nodes.filter(el=>{const r=el.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight*.95}).forEach(reveal),120);
+})();
+</script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
-<script src="i18n.js?v=20260907-v0132"></script><script src="site-editor.js?v=20260907-v0132"></script><script src="currency.js?v=20260907-v0132"></script><script src="app.js?v=20260907-v0132"></script>
+<script src="i18n.js?v=20260907-v0133"></script><script src="site-editor.js?v=20260907-v0133"></script><script src="currency.js?v=20260907-v0133"></script><script src="app.js?v=20260907-v0133"></script>
 </body>
 </html>

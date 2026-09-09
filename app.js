@@ -907,6 +907,7 @@
           button.setAttribute("aria-disabled", String(!available));
         }
       }
+      document.body.classList.toggle("annual-pass-enabled", availability.annual === true);
       document.querySelector(".lipex-pass-grid")?.classList.toggle("single-plan", availability.monthly !== availability.annual);
       for (const plan of ["monthly", "annual"]) {
         const button = document.querySelector(`[data-pass-plan="${plan}"]`);
@@ -1688,6 +1689,7 @@
   }
 
   function initSiteAnimations() {
+    if (document.getElementById('lipex-motion-bootstrap-v0133')) return;
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     const groups = [
       ['.hero-copy > *', 'motion-up', 75],

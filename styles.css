@@ -1575,3 +1575,32 @@ html{scroll-behavior:smooth}.language-button{background:#0b1117!important;border
   .site-motion-ready .feature-card.site-motion .feature-icon,
   .site-motion-ready .social-card.site-motion .social-icon{transform:none!important;filter:none!important;opacity:1!important;transition:none!important}
 }
+
+
+/* ===== v0.1.33 — guaranteed scroll motion + monthly-only MVP ===== */
+.lipex-pass-grid.single-plan{grid-template-columns:minmax(0,680px)!important;justify-content:center!important}
+.lipex-pass-grid.single-plan>.lipex-pass-card{width:100%!important;max-width:680px!important}
+.lipex-motion-v133 .lipex-motion-node{opacity:0;will-change:transform,opacity,filter}
+.lipex-motion-v133 .lipex-motion-up{transform:translate3d(0,46px,0);filter:blur(5px)}
+.lipex-motion-v133 .lipex-motion-left{transform:translate3d(-58px,18px,0);filter:blur(4px)}
+.lipex-motion-v133 .lipex-motion-right{transform:translate3d(58px,18px,0);filter:blur(4px)}
+.lipex-motion-v133 .lipex-motion-scale{transform:translate3d(0,28px,0) scale(.91);filter:blur(4px)}
+.lipex-motion-v133 .lipex-motion-clip{transform:translate3d(0,38px,0);clip-path:inset(0 0 100% 0 round 12px)}
+.lipex-motion-v133 .lipex-motion-node.lipex-motion-in{
+  animation:lipexRevealV133 .82s cubic-bezier(.16,1,.3,1) var(--lipex-motion-delay,0ms) both;
+}
+.lipex-motion-v133 .lipex-motion-clip.lipex-motion-in{animation-name:lipexRevealClipV133}
+@keyframes lipexRevealV133{to{opacity:1;transform:none;filter:none}}
+@keyframes lipexRevealClipV133{to{opacity:1;transform:none;filter:none;clip-path:inset(0 0 0 0 round 12px)}}
+.lipex-motion-v133 #inicio .community-hub.lipex-motion-in{animation-duration:1s}
+.lipex-motion-v133 .game-card.lipex-motion-in .game-media img{animation:lipexMediaRevealV133 1.05s cubic-bezier(.16,1,.3,1) calc(var(--lipex-motion-delay,0ms) + 120ms) both}
+@keyframes lipexMediaRevealV133{from{transform:scale(1.08);filter:saturate(.72) brightness(.78)}to{transform:scale(1);filter:saturate(1) brightness(1)}}
+@media(prefers-reduced-motion:reduce){
+  .lipex-motion-v133 .lipex-motion-node{transform:none!important;filter:none!important;clip-path:none!important}
+  .lipex-motion-v133 .lipex-motion-node.lipex-motion-in{animation:lipexFadeV133 .18s ease both!important}
+  @keyframes lipexFadeV133{from{opacity:0}to{opacity:1}}
+}
+
+/* v0.1.33: annual card is fail-closed. Only the current JS may explicitly enable it after backend confirmation. */
+.lipex-pass-card[data-plan-card="annual"]{display:none!important}
+body.annual-pass-enabled .lipex-pass-card[data-plan-card="annual"]{display:flex!important}
